@@ -2,7 +2,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:meta/meta.dart';
-import 'package:hello_world/Services/Providers/UserSessionProvider.dart';
 
 enum RequestType { get, post }
 
@@ -32,25 +31,6 @@ class RequestInfo {
       jsonHeaders.addAll(headers);
     }
     result.headers = jsonHeaders;
-    return result;
-  }
-
-  factory RequestInfo.oespJson(
-      {@required RequestType type,
-      @required String url,
-      Map<String, String> body}) {
-    var result = RequestInfo.json(type: type, url: url, body: body);
-    var userSession = UserSessionProvider.currentUserSession;
-    if (userSession != null) {
-      var oespHeaders = {
-        'X-OESP-Token': userSession.oespToken,
-        'X-OESP-Username': userSession.oespUsername,
-      };
-      if (result.headers != null) {
-        oespHeaders.addAll(result.headers);
-      }
-      result.headers = oespHeaders;
-    }
     return result;
   }
 }

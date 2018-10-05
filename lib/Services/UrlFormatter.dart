@@ -1,6 +1,3 @@
-import 'package:hello_world/Services/Providers/UserSessionProvider.dart';
-import 'package:hello_world/Services/Providers/CQSettingsProvider.dart';
-
 class FormattedUrl {
   final String host;
   final String path;
@@ -18,66 +15,36 @@ class FormattedUrl {
 }
 
 class UrlFormatter {
-  static const _baseCountryUrls = {"NL": "www.horizon.tv"};
+  int get _languageCode {
+    return 0; // TODO: make a possibility to chose language
+  }
 
-  String get _countryCode {
-    if (UserSessionProvider.currentUserSession != null) {
-      return UserSessionProvider.currentUserSession.countryCode;
-    } else {
-      return "NL";
+  String _host = "www.mangaeden.com";
+  String _imgHost = "cdn.mangaeden.com";
+
+  String _basePath = "/api";
+
+  FormattedUrl list() {
+    return FormattedUrl(host: _host, path: "$_basePath/list/$_languageCode/");
+  }
+
+  FormattedUrl listPage(int page, [int pageSize]) {
+    var params = {"p": "$page"};
+    if (pageSize != null) {
+      params["l"] = "$pageSize";
     }
+    return list().withParameters(params);
   }
 
-  String get _languageCode {
-    return "eng"; // TODO: get from userSession
+  FormattedUrl manga(String id) {
+    return FormattedUrl(host: _host, path: "$_basePath/manga/$id");
   }
 
-  String get _platform {
-    return "ios"; // TODO: get from device
+  FormattedUrl chapter(String id) {
+    return FormattedUrl(host: _host, path: "$_basePath/chapter/$id");
   }
 
-  String get host {
-    return _baseCountryUrls[_countryCode];
-  }
-
-  static final CQUrlFormatter cq = CQUrlFormatter();
-  static final OespSessionUrlFormatter oespSession = OespSessionUrlFormatter();
-  static final OespFeedUrlFormatter oespFeed = OespFeedUrlFormatter();
-}
-
-class CQUrlFormatter extends UrlFormatter {
-  String get _basePath {
-    return "/content/unified/$_countryCode/$_languageCode/$_platform";
-  }
-
-  FormattedUrl get settings {
-    return FormattedUrl(host: host, path: "$_basePath/settings.json");
-  }
-
-  FormattedUrl get layout {
-    return FormattedUrl(host: host, path: "$_basePath/layout.json");
-  }
-}
-
-class OespUrlFormatter extends UrlFormatter {
-  @override
-  String get host {
-    return CQSettingsProvider.oespBaseUrl();
-  }
-
-  String get _basePath {
-    return "/oesp/v2/$_countryCode/$_languageCode/$_platform";
-  }
-}
-
-class OespSessionUrlFormatter extends OespUrlFormatter {
-  FormattedUrl get login {
-    return FormattedUrl(host: host, path: "$_basePath/session");
-  }
-}
-
-class OespFeedUrlFormatter extends OespUrlFormatter {
-  FormattedUrl feed(String feedId) {
-    return FormattedUrl(host: host, path: "$_basePath/mediagroups/feeds/$feedId");
+  FormattedUrl image(String id) {
+    return FormattedUrl(host: _imgHost, path: "mangasimg/$id");
   }
 }

@@ -30,10 +30,13 @@ class _AppState extends State<App> {
     return MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          brightness: Brightness.dark,
+          primarySwatch: Colors.teal,
+          accentColor: Colors.tealAccent,
         ),
         home: Scaffold(
-          body: ListView(
+          body: GridView.count(
+            crossAxisCount: 2,
             children: _cells,
           ),
         ));
@@ -47,19 +50,29 @@ class _AppState extends State<App> {
         .map((mangaMap) => Manga.fromShortMap(mangaMap))
         .toList();
     var cells = mangas.map((manga) {
-      return Row(
-        children: <Widget>[
-          SizedBox(
-              height: 70.0,
-              width: 50.0,
-              child: CachedNetworkImage(
-                imageUrl: UrlFormatter().image(manga.posterUrl).toString(),
-                placeholder: Center(child: CircularProgressIndicator()),
-                errorWidget: Center(child: Icon(Icons.error)),
-              )),
-          Expanded(child: Text(manga.title))
-        ],
-      );
+      return Padding(
+          padding: EdgeInsets.all(4.0),
+          child: Column(
+            children: <Widget>[
+              AspectRatio(
+                  aspectRatio: 5.0 / 3.0,
+                  child: Container(
+                      child: manga.posterUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: UrlFormatter()
+                                  .image(manga.posterUrl)
+                                  .toString(),
+                              placeholder:
+                                  Center(child: CircularProgressIndicator()),
+                              errorWidget: Center(child: Icon(Icons.error)),
+                            )
+                          : Center(child: Icon(Icons.find_in_page)))),
+              Text(
+                manga.title,
+                maxLines: 2,
+              )
+            ],
+          ));
     }).toList();
 
     return cells;

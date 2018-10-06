@@ -4,10 +4,11 @@ import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
 import 'package:manga_reader/Pages/Widgets/PosterCell.dart';
+import 'package:manga_reader/Pages/MangaDetailPage.dart';
 
 class HomePage extends StatefulWidget {
   @override
-    State<StatefulWidget> createState() => _HomePageState();
+  State<StatefulWidget> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -26,19 +27,20 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-          body: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8.0,
-                mainAxisSpacing: 8.0,
-                childAspectRatio: 3.5 / 5.0,
-                children: _cells(),
-              )),
-        );
+      appBar: AppBar(
+        title: Text("Manga List"),
+      ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
+        padding: EdgeInsets.all(8.0),
+        childAspectRatio: 3.5 / 5.0,
+        children: _cells(),
+      ),
+    );
   }
-  
-  
+
   Future<List<Manga>> _loadList() async {
     var requestInfo = RequestInfo.json(
         type: RequestType.get, url: UrlFormatter().listPage(0).toString());
@@ -57,9 +59,12 @@ class _HomePageState extends State<HomePage> {
         posterUrl: manga.posterUrl != null
             ? UrlFormatter().image(manga.posterUrl).toString()
             : null,
-        onTap: (() {}),
+        onTap: (() {
+          Navigator.of(context).push(new MaterialPageRoute(
+      builder: (context) => MangaDetailPage(manga)
+    ))
+        }),
       );
     }).toList();
   }
-
 }

@@ -36,7 +36,7 @@ class FullMangaInfo {
     title = map["title"];
     author = map["author"];
     description = map["description"];
-    chapters = (map["chapters"] as List).map((chapterArray) => ChapterInfo.fromArray(chapterArray)).toList();
+    chapters = (map["chapters"] as List).reversed.map((chapterArray) => ChapterInfo.fromArray(chapterArray)).toList();
   }
 }
 
@@ -49,6 +49,19 @@ class ChapterInfo {
   ChapterInfo(this.number, this.date, this.title, this.id);
 
   factory ChapterInfo.fromArray(List<dynamic> array) {
-    return ChapterInfo(array[0], array[1], array[2], array[3]);
+    return ChapterInfo((array[0] as num).toDouble(), array[1], array[2], array[3]);
+  }
+}
+
+class MangaImageInfo {
+  final double index;
+  final String url;
+  final int width;
+  final int height;
+
+  MangaImageInfo(this.index, this.url, this.width, this.height);
+
+  factory MangaImageInfo.fromArray(List<dynamic> array) {
+    return MangaImageInfo((array[0] as num).toDouble(), array[1], array[2], array[3]);
   }
 }

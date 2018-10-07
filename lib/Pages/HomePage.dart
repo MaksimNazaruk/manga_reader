@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Manga> _mangaList = [];
+  List<ShortMangaInfo> _mangaList = [];
 
   @override
   void initState() {
@@ -41,12 +41,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<List<Manga>> _loadList() async {
+  Future<List<ShortMangaInfo>> _loadList() async {
     var requestInfo = RequestInfo.json(
         type: RequestType.get, url: UrlFormatter().listPage(0).toString());
     var response = await BaseService().performRequest(requestInfo);
-    List<Manga> mangas = (response["manga"] as List)
-        .map((mangaMap) => Manga.fromShortMap(mangaMap))
+    List<ShortMangaInfo> mangas = (response["manga"] as List)
+        .map((mangaMap) => ShortMangaInfo.fromMap(mangaMap))
         .toList();
 
     return mangas;
@@ -55,16 +55,14 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _cells() {
     return _mangaList.map((manga) {
       return PosterCell(
-        title: manga.title,
-        posterUrl: manga.posterUrl != null
-            ? UrlFormatter().image(manga.posterUrl).toString()
-            : null,
-        onTap: (() {
-          Navigator.of(context).push(new MaterialPageRoute(
-      builder: (context) => MangaDetailPage(manga)
-    ))
-        }),
-      );
+          title: manga.title,
+          posterUrl: manga.posterUrl != null
+              ? UrlFormatter().image(manga.posterUrl).toString()
+              : null,
+          onTap: (() {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => MangaDetailPage(manga.id)));
+          }));
     }).toList();
   }
 }

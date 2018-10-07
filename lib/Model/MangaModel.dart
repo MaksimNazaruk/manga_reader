@@ -16,12 +16,13 @@ class ShortMangaInfo {
 }
 
 class FullMangaInfo {
-  // final String id; // TODO: get id somehow
+  String id;
   String title;
-  String akaTitle;
   String posterUrl;
-  String artist;
-  String autor;
+  // String artist;
+  String author;
+  String description;
+  List<String> categories;
   List<ChapterInfo> chapters;
 
   // Manga(this.id, this.title, this.alias, List<dynamic> chapters) {
@@ -30,13 +31,17 @@ class FullMangaInfo {
 
   // FullMangaInfo(this.id, this.title, this.akaTitle, this.alias, this.posterUrl);
 
-  FullMangaInfo.fromMap(Map<String, dynamic> map) {
-    this.title = map["title"];
+  FullMangaInfo.fromMap(String id, Map<String, dynamic> map) {
+    this.id = id;
+    title = map["title"];
+    author = map["author"];
+    description = map["description"];
+    chapters = (map["chapters"] as List).map((chapterArray) => ChapterInfo.fromArray(chapterArray)).toList();
   }
 }
 
 class ChapterInfo {
-  final int number;
+  final double number;
   final double date;
   final String title;
   final String id;

@@ -34,24 +34,34 @@ class _HomePageState extends State<HomePage> {
         body: Column(
           children: [
             Container(
-              color: Theme.of(context).accentColor,
-              child: Row(
-                children: [
-                  Icon(Icons.search),
-                  Expanded(
-                    child: TextField(
-                      onChanged: (newSearchValue) {
-                        _searchTitle = newSearchValue;
-                      },
+              decoration: BoxDecoration(
+                  color: Theme.of(context).backgroundColor,
+                  boxShadow: [
+                    BoxShadow(
+                        offset: Offset(0.0, 5.0),
+                        blurRadius: 10.0,
+                        color: Colors.black45)
+                  ]),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(8.0, 0.0, 0.0, 0.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.search),
+                    Expanded(
+                      child: TextField(
+                        onChanged: (newSearchValue) {
+                          _searchTitle = newSearchValue;
+                        },
+                      ),
                     ),
-                  ),
-                  FlatButton(
-                    child: Text("Search"),
-                    onPressed: () {
-                      _performSearch();
-                    },
-                  )
-                ],
+                    FlatButton(
+                      child: Text("Search"),
+                      onPressed: () {
+                        _performSearch();
+                      },
+                    )
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -86,9 +96,16 @@ class _HomePageState extends State<HomePage> {
 
   void _performSearch() {
     if (_searchTitle?.isNotEmpty ?? false) {
-      ShortMangaInfo.fetchByTitle(DBManager.db, _searchTitle).then((searchResultList) {
+      ShortMangaInfo.fetchByTitle(DBManager.db, _searchTitle)
+          .then((searchResultList) {
         setState(() {
           _mangaList = searchResultList;
+        });
+      });
+    } else {
+      ShortMangaInfo.fetchAll(DBManager.db).then((allMangas) {
+        setState(() {
+          _mangaList = allMangas;
         });
       });
     }

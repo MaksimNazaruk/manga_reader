@@ -45,7 +45,7 @@ class ShortMangaInfo {
   }
 
   static Future<List<ShortMangaInfo>> fetchAll(Database db) async {
-    List fetchResult = await db.query(_tableName);
+    List fetchResult = await db.query(_tableName, orderBy: "hits DESC");
     return fetchResult.map((map) => ShortMangaInfo.fromDBMap(map)).toList();
   }
 

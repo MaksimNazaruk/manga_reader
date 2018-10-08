@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
-import 'package:manga_reader/Pages/ReadingPage.dart';
 
 class MangaDetailPage extends StatefulWidget {
   final String mangaId;
@@ -46,24 +45,15 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
           title: Text(_mangaInfo?.title ?? "Loading..."),
         ),
         body: _mangaInfo != null
-            ? ListView(children: _description())
+            ? ListView(children: [
+                Text(_mangaInfo.title),
+                Text("Made by ${_mangaInfo.author ?? "N\A"}"),
+                Text(_mangaInfo.description),
+                RaisedButton(
+                  child: Text("Read"),
+                  onPressed: () {},
+                )
+              ])
             : Center(child: CircularProgressIndicator()));
-  }
-
-  List<Widget> _description() {
-    List<Widget> widgets = [
-      Text(_mangaInfo.title),
-      Text("Made by ${_mangaInfo.author ?? "N\A"}"),
-      Text(_mangaInfo.description)
-    ];
-    widgets.addAll(_mangaInfo.chapters.map((chapter) => RaisedButton(
-          color: Theme.of(context).accentColor,
-          child: Text("Read chapter ${chapter.number}: ${chapter.title}"),
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => ReadingPage(chapter.id)));
-          },
-        )));
-    return widgets;
   }
 }

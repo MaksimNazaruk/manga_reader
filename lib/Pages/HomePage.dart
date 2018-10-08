@@ -13,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<ShortMangaInfo> _mangaList = [];
+  String _searchTitle;
 
   @override
   void initState() {
@@ -27,29 +28,70 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Manga List"),
-      ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-        padding: EdgeInsets.all(8.0),
-        childAspectRatio: 3.5 / 5.0,
-        children: _cells(),
-      ),
-    );
+        appBar: AppBar(
+          title: Text("Manga List"),
+        ),
+        body: Column(
+          children: [
+            Container(
+              color: Theme.of(context).accentColor,
+              child: Row(
+                children: [
+                  Icon(Icons.search),
+                  Expanded(
+                    child: TextField(
+                      onChanged: (newSearchValue) {
+                        _searchTitle = newSearchValue;
+                      },
+                    ),
+                  ),
+                  FlatButton(
+                    child: Text("Search"),
+                    onPressed: () {
+                      _performSearch();
+                    },
+                  )
+                ],
+              ),
+            ),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+                padding: EdgeInsets.all(8.0),
+                childAspectRatio: 3.5 / 5.0,
+                children: _cells(),
+              ),
+            ),
+          ],
+        ));
   }
 
   Future<List<ShortMangaInfo>> _loadList() async {
-    var requestInfo = RequestInfo.json(
-        type: RequestType.get, url: UrlFormatter().listPage(0).toString());
-    var response = await BaseService().performRequest(requestInfo);
-    List<ShortMangaInfo> mangas = (response["manga"] as List)
-        .map((mangaMap) => ShortMangaInfo.fromMap(mangaMap))
-        .toList();
+    List<ShortMangaInfo> mangas = await ShortMangaInfo.fetchAll(DBManager.db);
+
+    if (mangas == null || mangas.isEmpty) {
+      var requestInfo = RequestInfo.json(
+          type: RequestType.get, url: UrlFormatter().list().toString());
+      var response = await BaseService().performRequest(requestInfo);
+      mangas = (response["manga"] as List)
+          .map((mangaMap) => ShortMangaInfo.fromMap(mangaMap))
+          .toList();
+      await ShortMangaInfo.insertBatch(DBManager.db, mangas);
+    }
 
     return mangas;
+  }
+
+  void _performSearch() {
+    if (_searchTitle?.isNotEmpty ?? false) {
+      ShortMangaInfo.fetchByTitle(DBManager.db, _searchTitle).then((searchResultList) {
+        setState(() {
+          _mangaList = searchResultList;
+        });
+      });
+    }
   }
 
   List<Widget> _cells() {
@@ -59,6 +101,7 @@ class _HomePageState extends State<HomePage> {
           posterUrl: manga.posterUrl != null
               ? UrlFormatter().image(manga.posterUrl).toString()
               : null,
+          hits: manga.hits,
           onTap: (() {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => MangaDetailPage(manga.id)));

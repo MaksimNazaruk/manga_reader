@@ -4,9 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 class PosterCell extends StatelessWidget {
   final String title;
   final String posterUrl;
+  final int hits;
   final VoidCallback onTap;
 
-  PosterCell({this.title, this.posterUrl, this.onTap});
+  PosterCell({this.title, this.posterUrl, this.hits, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +20,7 @@ class PosterCell extends StatelessWidget {
               color: Theme.of(context).disabledColor,
               child: _posterImage(posterUrl)),
         ),
+        Banner(message: "$hits", location: BannerLocation.topEnd,),
         Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.stretch,

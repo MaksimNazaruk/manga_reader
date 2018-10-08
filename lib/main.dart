@@ -1,7 +1,17 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:manga_reader/Model/MangaModel.dart';
 import 'package:manga_reader/Pages/HomePage.dart';
 
-void main() => runApp(App());
+void main() {
+  initApp().then((_) {
+    runApp(App());
+  });
+}
+
+Future<void> initApp() async {
+  await DBManager.initDatabase();
+}
 
 class App extends StatelessWidget {
   @override

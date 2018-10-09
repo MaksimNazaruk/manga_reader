@@ -42,23 +42,40 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(_mangaInfo?.title ?? "Loading..."),
-        ),
-        body: _mangaInfo != null
-            ? ListView(children: _description())
-            : Center(child: CircularProgressIndicator()));
+      appBar: AppBar(
+        title: Text(_mangaInfo?.title ?? "Loading..."),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: _mangaInfo != null
+            ? ListView(children: _description(context))
+            : Center(child: CircularProgressIndicator()),
+      ),
+    );
   }
 
-  List<Widget> _description() {
+  List<Widget> _description(BuildContext context) {
     List<Widget> widgets = [
-      Text(_mangaInfo.title),
-      Text("Made by ${_mangaInfo.author ?? "N\A"}"),
-      Text(_mangaInfo.description)
+      Padding(
+          padding: EdgeInsets.symmetric(vertical: 10.0),
+          child: Text(
+            _mangaInfo.title,
+            style: Theme.of(context).textTheme.title,
+          )),
+      Padding(
+          padding: EdgeInsets.symmetric(vertical: 10.0),
+          child: Text("Author:\n${_mangaInfo.author ?? "N\A"}")),
+      Padding(
+          padding: EdgeInsets.symmetric(vertical: 10.0),
+          child: Text("Categories:\n${_mangaInfo.categories.join(", ")}")),
+      Padding(
+          padding: EdgeInsets.symmetric(vertical: 10.0),
+          child: Text("Description:\n${_mangaInfo.description}"))
     ];
     widgets.addAll(_mangaInfo.chapters.map((chapter) => RaisedButton(
           color: Theme.of(context).accentColor,
-          child: Text("Read chapter ${chapter.number}: ${chapter.title}"),
+          child: Text(
+              "Chapter ${chapter.number.toStringAsFixed(chapter.number.truncateToDouble() == chapter.number ? 0 : 2)}: ${chapter.title}"),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => ReadingPage(chapter.id)));

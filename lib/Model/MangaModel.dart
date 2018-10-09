@@ -51,8 +51,8 @@ class ShortMangaInfo {
 
   static Future<List<ShortMangaInfo>> fetchByTitle(
       Database db, String title) async {
-    List fetchResult =
-        await db.query(_tableName, where: "title = ?", whereArgs: [title]);
+    List fetchResult = await db.query(_tableName,
+        where: "title LIKE '%$title%' COLLATE NOCASE", orderBy: "hits DESC");
     return fetchResult.map((map) => ShortMangaInfo.fromDBMap(map)).toList();
   }
   // End DB support
@@ -104,6 +104,7 @@ class FullMangaInfo {
         .reversed
         .map((chapterArray) => ChapterInfo.fromArray(chapterArray))
         .toList();
+    categories = List<String>.from(map["categories"] as List);
   }
 }
 

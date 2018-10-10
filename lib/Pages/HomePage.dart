@@ -33,15 +33,9 @@ class _HomePageState extends State<HomePage> {
         ),
         body: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                  color: Theme.of(context).backgroundColor,
-                  boxShadow: [
-                    BoxShadow(
-                        offset: Offset(0.0, 5.0),
-                        blurRadius: 10.0,
-                        color: Colors.black45)
-                  ]),
+            Material(
+              color: Theme.of(context).backgroundColor,
+              elevation: 30.0,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(8.0, 0.0, 0.0, 0.0),
                 child: Row(

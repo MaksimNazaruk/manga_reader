@@ -11,8 +11,10 @@ class PosterCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.all(Radius.circular(8.0)),
+    return Material(
+      borderRadius: BorderRadius.circular(8.0),
+      clipBehavior: Clip.antiAlias,
+      elevation: 3.0,
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[

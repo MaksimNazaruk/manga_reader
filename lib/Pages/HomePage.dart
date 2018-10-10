@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<ShortMangaInfo> _mangaList = [];
+  List<MangaInfo> _mangaList = [];
   String _searchTitle;
 
   @override
@@ -72,17 +72,17 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 
-  Future<List<ShortMangaInfo>> _loadList() async {
-    List<ShortMangaInfo> mangas = await ShortMangaInfo.fetchAll(DBManager.db);
+  Future<List<MangaInfo>> _loadList() async {
+    List<MangaInfo> mangas = await MangaInfo.fetchAll(DBManager.db);
 
     if (mangas == null || mangas.isEmpty) {
       var requestInfo = RequestInfo.json(
           type: RequestType.get, url: UrlFormatter().list().toString());
       var response = await BaseService().performRequest(requestInfo);
       mangas = (response["manga"] as List)
-          .map((mangaMap) => ShortMangaInfo.fromMap(mangaMap))
+          .map((mangaMap) => MangaInfo.fromShortMap(mangaMap))
           .toList();
-      await ShortMangaInfo.insertBatch(DBManager.db, mangas);
+      await MangaInfo.insertBatch(DBManager.db, mangas);
     }
 
     return mangas;
@@ -90,14 +90,14 @@ class _HomePageState extends State<HomePage> {
 
   void _performSearch() {
     if (_searchTitle?.isNotEmpty ?? false) {
-      ShortMangaInfo.fetchByTitle(DBManager.db, _searchTitle)
+      MangaInfo.fetchByTitle(DBManager.db, _searchTitle)
           .then((searchResultList) {
         setState(() {
           _mangaList = searchResultList;
         });
       });
     } else {
-      ShortMangaInfo.fetchAll(DBManager.db).then((allMangas) {
+      MangaInfo.fetchAll(DBManager.db).then((allMangas) {
         setState(() {
           _mangaList = allMangas;
         });

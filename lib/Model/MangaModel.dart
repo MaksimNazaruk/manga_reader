@@ -11,101 +11,156 @@ class DBManager {
     String path = databasesPath + "/" + _DB_NAME;
 
     db = await openDatabase(path, version: 1, onCreate: (db, version) async {
-      await db.execute("CREATE TABLE ${ShortMangaInfo.dbEntityDescription}");
+      await db.execute("CREATE TABLE ${MangaInfo.dbEntityDescription}");
     });
   }
 }
 
-class ShortMangaInfo {
-  final String id;
-  final String title;
-  final String alias;
-  final String posterUrl;
-  final int hits;
+abstract class DBObject {
+
+  String tableName();
+  DBObject fromDBMap(Map<String, dynamic> map);
+  Map<String, dynamic> toDBMap();
+}
+
+class MangaInfo {
+  String id;
+  String title;
+  String alias;
+  String posterUrl;
+  int hits;
+  String author;
+  String artist;
+  int chaptersNumber;
+  int releaseYear;
+  int language;
+  String description;
+  bool fullInfoLoaded;
+  double lastReadDate;
+  List<String> get categories {
+    return ["~no categories~"]; // TODO: get actual categories
+  }
+  List<ChapterInfo> get chapters {
+    return []; // TODO: fetch actual chapters
+  }
+
+MangaInfo.fromShortMap(Map<String, dynamic> map) {
+    this.id = map["i"];
+    title = map["t"];
+    alias = map["a"];
+    posterUrl = map["im"];
+    hits = map["h"];
+    fullInfoLoaded = false;
+  }
+
+  MangaInfo.fromFullMap(String id, Map<String, dynamic> map) {
+    this.id = id;
+    title = map["title"];
+    alias = map["alias"];
+    posterUrl = map["image"];
+    hits = map["hits"];
+    author = map["author"];
+    artist = map["artist"];
+    chaptersNumber = map["chapters_len"];
+    releaseYear = map["released"];
+    language = map["language"];
+    description = map["description"];
+    fullInfoLoaded = true;
+    // chapters = (map["chapters"] as List)
+    //     .reversed
+    //     .map((chapterArray) => ChapterInfo.fromArray(chapterArray))
+    //     .toList();
+    // categories = List<String>.from(map["categories"] as List);
+  }
 
   // DB support
-  static String _tableName = "ShortMangaInfo";
+  static String _tableName = "FullMangaInfo";
 
-  static String dbEntityDescription =
-      "$_tableName (id TEXT PRIMARY KEY, title TEXT, alias TEXT, posterUrl TEXT, hits INTEGER)";
+  static String dbEntityDescription = '''$_tableName (
+        id TEXT PRIMARY KEY, 
+      title TEXT, 
+      alias TEXT, 
+      posterUrl TEXT, 
+      hits INTEGER, 
+      author TEXT, 
+      artist TEXT,
+      chaptersNumber INT,
+      releaseYear INT,
+      language INT,
+      description TEXT,
+      fullInfoLoaded INT,
+      lastReadDate REAL)''';
+
+  MangaInfo.fromDBMap(Map<String, dynamic> map) {
+    id = map["id"];
+    title = map["title"];
+    alias = map["alias"];
+    posterUrl = map["posterUrl"];
+    hits = map["hits"];
+    author = map["author"];
+    artist = map["artist"];
+    chaptersNumber = map["chaptersNumber"];
+    releaseYear = map["releaseYear"];
+    language = map["language"];
+    description = map["description"];
+    fullInfoLoaded = map["fullInfoLoaded"] == 1 ? true : false;
+    lastReadDate = map["lastReadDate"];
+  }
+
+  Map<String, dynamic> toDBMap() {
+    Map<String, dynamic> map = {};
+    map["id"] = id;
+    map["title"] = title;
+    map["alias"] = alias;
+    map["posterUrl"] = posterUrl;
+    map["hits"] = hits;
+    map["author"] = author;
+    map["artist"] = artist;
+    map["chaptersNumber"] = chaptersNumber;
+    map["releaseYear"] = releaseYear;
+    map["language"] = language;
+    map["description"] = description;
+    map["fullInfoLoaded"] = fullInfoLoaded ? 1 : 0;
+    map["lastReadDate"] = lastReadDate;
+
+    return map;
+  }
 
   Future<void> insert(Database db) async {
     await db.insert(_tableName, toDBMap(),
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<void> insertBatch(
-      Database db, List<ShortMangaInfo> items) async {
+      Database db, List<MangaInfo> items) async {
     Batch batch = db.batch();
     items.forEach((item) {
       batch.insert(_tableName, item.toDBMap(),
-          conflictAlgorithm: ConflictAlgorithm.ignore);
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
     await batch.commit(noResult: true);
   }
 
-  static Future<List<ShortMangaInfo>> fetchAll(Database db) async {
+  static Future<List<MangaInfo>> fetchAll(Database db) async {
     List fetchResult = await db.query(_tableName, orderBy: "hits DESC");
-    return fetchResult.map((map) => ShortMangaInfo.fromDBMap(map)).toList();
+    return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
   }
 
-  static Future<List<ShortMangaInfo>> fetchByTitle(
+  static Future<List<MangaInfo>> fetchByTitle(
       Database db, String title) async {
     List fetchResult = await db.query(_tableName,
         where: "title LIKE '%$title%' COLLATE NOCASE", orderBy: "hits DESC");
-    return fetchResult.map((map) => ShortMangaInfo.fromDBMap(map)).toList();
+    return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
+  }
+
+  static Future<List<MangaInfo>> fetchById(
+      Database db, String id) async {
+    List fetchResult = await db.query(_tableName,
+        where: "id = '$id'");
+    return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
   }
   // End DB support
 
-  ShortMangaInfo(this.id, this.title, this.alias, this.posterUrl, this.hits);
-
-  factory ShortMangaInfo.fromMap(Map<String, dynamic> map) {
-    return ShortMangaInfo(map["i"], map["t"], map["a"], map["im"], map["h"]);
-  }
-
-  factory ShortMangaInfo.fromDBMap(Map<String, dynamic> map) {
-    return ShortMangaInfo(
-        map["id"], map["title"], map["alias"], map["posterUrl"], map["hits"]);
-  }
-
-  Map<String, dynamic> toDBMap() {
-    return {
-      "id": id,
-      "title": title,
-      "alias": alias,
-      "posterUrl": posterUrl,
-      "hits": hits
-    };
-  }
-}
-
-class FullMangaInfo {
-  String id;
-  String title;
-  String posterUrl;
-  // String artist;
-  String author;
-  String description;
-  List<String> categories;
-  List<ChapterInfo> chapters;
-
-  // Manga(this.id, this.title, this.alias, List<dynamic> chapters) {
-  //   this.chapters = chapters.map((chapterArray) => Chapter(chapterArray)).toList();
-  // }
-
-  // FullMangaInfo(this.id, this.title, this.akaTitle, this.alias, this.posterUrl);
-
-  FullMangaInfo.fromMap(String id, Map<String, dynamic> map) {
-    this.id = id;
-    title = map["title"];
-    author = map["author"];
-    description = map["description"];
-    chapters = (map["chapters"] as List)
-        .reversed
-        .map((chapterArray) => ChapterInfo.fromArray(chapterArray))
-        .toList();
-    categories = List<String>.from(map["categories"] as List);
-  }
 }
 
 class ChapterInfo {

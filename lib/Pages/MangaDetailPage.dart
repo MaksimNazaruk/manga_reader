@@ -15,18 +15,23 @@ class MangaDetailPage extends StatefulWidget {
 }
 
 class _MangaDetailPageState extends State<MangaDetailPage> {
-  FullMangaInfo _mangaInfo;
+  MangaInfo _mangaInfo;
 
-  Future<FullMangaInfo> _loadManga() async {
-    var requestInfo = RequestInfo.json(
-        type: RequestType.get,
-        url: UrlFormatter().manga(widget.mangaId).toString());
-    var response = await BaseService().performRequest(requestInfo);
-    if (response != null) {
-      return FullMangaInfo.fromMap(widget.mangaId, response);
-    } else {
-      return null;
+  Future<MangaInfo> _loadManga() async {
+    var fetchResult = await MangaInfo.fetchById(DBManager.db, widget.mangaId);
+    MangaInfo manga = fetchResult.first;
+    if (!manga.fullInfoLoaded) {
+      var requestInfo = RequestInfo.json(
+          type: RequestType.get,
+          url: UrlFormatter().manga(widget.mangaId).toString());
+      var response = await BaseService().performRequest(requestInfo);
+      if (response != null) {
+        manga = MangaInfo.fromFullMap(widget.mangaId, response);
+        await manga.insert(DBManager.db);
+      }
     }
+
+    return manga;
   }
 
   @override

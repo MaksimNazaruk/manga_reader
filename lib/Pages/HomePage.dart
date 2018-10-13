@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
+import 'package:manga_reader/Model/DBProvider.dart';
 import 'package:manga_reader/Pages/Widgets/PosterCell.dart';
 import 'package:manga_reader/Pages/MangaDetailPage.dart';
 
@@ -73,7 +74,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<MangaInfo>> _loadList() async {
-    List<MangaInfo> mangas = await MangaInfo.fetchAll(DBManager.db);
+    List<MangaInfo> mangas =
+        await DBProvider.dbManager.fetchAll(MangaInfoDescription());
 
     if (mangas == null || mangas.isEmpty) {
       var requestInfo = RequestInfo.json(
@@ -82,7 +84,9 @@ class _HomePageState extends State<HomePage> {
       mangas = (response["manga"] as List)
           .map((mangaMap) => MangaInfo.fromShortMap(mangaMap))
           .toList();
-      await MangaInfo.insertBatch(DBManager.db, mangas);
+      await DBProvider.dbManager.insertBatch(
+          description: MangaInfoDescription(),
+          entities: mangas); //MangaInfo.insertBatch(DBManager.db, mangas);
     }
 
     return mangas;
@@ -90,14 +94,16 @@ class _HomePageState extends State<HomePage> {
 
   void _performSearch() {
     if (_searchTitle?.isNotEmpty ?? false) {
-      MangaInfo.fetchByTitle(DBManager.db, _searchTitle)
+      DBProvider.dbManager
+          .fetchWithPredicate(MangaInfoDescription(),
+              "title LIKE '%$_searchTitle%' COLLATE NOCASE")
           .then((searchResultList) {
         setState(() {
           _mangaList = searchResultList;
         });
       });
     } else {
-      MangaInfo.fetchAll(DBManager.db).then((allMangas) {
+      DBProvider.dbManager.fetchAll(MangaInfoDescription()).then((allMangas) {
         setState(() {
           _mangaList = allMangas;
         });

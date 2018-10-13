@@ -1,27 +1,4 @@
-import 'dart:async';
-import 'package:sqflite/sqflite.dart';
-
-class DBManager {
-  static const _DB_NAME = "MangaReader.db";
-
-  static Database db;
-
-  static Future<void> initDatabase() async {
-    var databasesPath = await getDatabasesPath();
-    String path = databasesPath + "/" + _DB_NAME;
-
-    db = await openDatabase(path, version: 1, onCreate: (db, version) async {
-      await db.execute("CREATE TABLE ${MangaInfo.dbEntityDescription}");
-    });
-  }
-}
-
-abstract class DBObject {
-
-  String tableName();
-  DBObject fromDBMap(Map<String, dynamic> map);
-  Map<String, dynamic> toDBMap();
-}
+import 'package:manga_reader/Model/DBModel.dart';
 
 class MangaInfo {
   String id;
@@ -40,11 +17,14 @@ class MangaInfo {
   List<String> get categories {
     return ["~no categories~"]; // TODO: get actual categories
   }
+
+  MangaInfo();
+
   List<ChapterInfo> get chapters {
     return []; // TODO: fetch actual chapters
   }
 
-MangaInfo.fromShortMap(Map<String, dynamic> map) {
+  MangaInfo.fromShortMap(Map<String, dynamic> map) {
     this.id = map["i"];
     title = map["t"];
     alias = map["a"];
@@ -72,95 +52,70 @@ MangaInfo.fromShortMap(Map<String, dynamic> map) {
     //     .toList();
     // categories = List<String>.from(map["categories"] as List);
   }
+}
 
-  // DB support
-  static String _tableName = "FullMangaInfo";
+class MangaInfoDescription extends DBEntityDescription<MangaInfo> {
+  @override
+  String get tableName => "MangaInfo";
 
-  static String dbEntityDescription = '''$_tableName (
-        id TEXT PRIMARY KEY, 
-      title TEXT, 
-      alias TEXT, 
-      posterUrl TEXT, 
-      hits INTEGER, 
-      author TEXT, 
-      artist TEXT,
-      chaptersNumber INT,
-      releaseYear INT,
-      language INT,
-      description TEXT,
-      fullInfoLoaded INT,
-      lastReadDate REAL)''';
+  @override
+  MangaInfo fromDBMap(Map<String, dynamic> map) {
+    MangaInfo entity = MangaInfo();
+    entity
+      ..id = map["id"]
+      ..title = map["title"]
+      ..alias = map["alias"]
+      ..posterUrl = map["posterUrl"]
+      ..hits = map["hits"]
+      ..author = map["author"]
+      ..artist = map["artist"]
+      ..chaptersNumber = map["chaptersNumber"]
+      ..releaseYear = map["releaseYear"]
+      ..language = map["language"]
+      ..description = map["description"]
+      ..fullInfoLoaded = map["fullInfoLoaded"] == 1 ? true : false
+      ..lastReadDate = map["lastReadDate"];
 
-  MangaInfo.fromDBMap(Map<String, dynamic> map) {
-    id = map["id"];
-    title = map["title"];
-    alias = map["alias"];
-    posterUrl = map["posterUrl"];
-    hits = map["hits"];
-    author = map["author"];
-    artist = map["artist"];
-    chaptersNumber = map["chaptersNumber"];
-    releaseYear = map["releaseYear"];
-    language = map["language"];
-    description = map["description"];
-    fullInfoLoaded = map["fullInfoLoaded"] == 1 ? true : false;
-    lastReadDate = map["lastReadDate"];
+    return entity;
   }
 
-  Map<String, dynamic> toDBMap() {
+  @override
+  Map<String, dynamic> toDBMap(MangaInfo entity) {
     Map<String, dynamic> map = {};
-    map["id"] = id;
-    map["title"] = title;
-    map["alias"] = alias;
-    map["posterUrl"] = posterUrl;
-    map["hits"] = hits;
-    map["author"] = author;
-    map["artist"] = artist;
-    map["chaptersNumber"] = chaptersNumber;
-    map["releaseYear"] = releaseYear;
-    map["language"] = language;
-    map["description"] = description;
-    map["fullInfoLoaded"] = fullInfoLoaded ? 1 : 0;
-    map["lastReadDate"] = lastReadDate;
+    map["id"] = entity.id;
+    map["title"] = entity.title;
+    map["alias"] = entity.alias;
+    map["posterUrl"] = entity.posterUrl;
+    map["hits"] = entity.hits;
+    map["author"] = entity.author;
+    map["artist"] = entity.artist;
+    map["chaptersNumber"] = entity.chaptersNumber;
+    map["releaseYear"] = entity.releaseYear;
+    map["language"] = entity.language;
+    map["description"] = entity.description;
+    map["fullInfoLoaded"] = entity.fullInfoLoaded ? 1 : 0;
+    map["lastReadDate"] = entity.lastReadDate;
 
     return map;
   }
 
-  Future<void> insert(Database db) async {
-    await db.insert(_tableName, toDBMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
-  static Future<void> insertBatch(
-      Database db, List<MangaInfo> items) async {
-    Batch batch = db.batch();
-    items.forEach((item) {
-      batch.insert(_tableName, item.toDBMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    });
-    await batch.commit(noResult: true);
-  }
-
-  static Future<List<MangaInfo>> fetchAll(Database db) async {
-    List fetchResult = await db.query(_tableName, orderBy: "hits DESC");
-    return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
-  }
-
-  static Future<List<MangaInfo>> fetchByTitle(
-      Database db, String title) async {
-    List fetchResult = await db.query(_tableName,
-        where: "title LIKE '%$title%' COLLATE NOCASE", orderBy: "hits DESC");
-    return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
-  }
-
-  static Future<List<MangaInfo>> fetchById(
-      Database db, String id) async {
-    List fetchResult = await db.query(_tableName,
-        where: "id = '$id'");
-    return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
-  }
-  // End DB support
-
+  @override
+  List<DBEntityField> get fields => [
+        DBEntityField(
+            name: "id", type: DBEntityFieldType.text, isPrimary: true),
+        DBEntityField(name: "title", type: DBEntityFieldType.text),
+        DBEntityField(name: "alias", type: DBEntityFieldType.text),
+        DBEntityField(name: "posterUrl", type: DBEntityFieldType.text),
+        DBEntityField(name: "hits", type: DBEntityFieldType.int),
+        DBEntityField(name: "author", type: DBEntityFieldType.text),
+        DBEntityField(name: "artist", type: DBEntityFieldType.text),
+        DBEntityField(name: "chaptersNumber", type: DBEntityFieldType.int),
+        DBEntityField(name: "releaseYear", type: DBEntityFieldType.int),
+        DBEntityField(name: "language", type: DBEntityFieldType.int),
+        DBEntityField(name: "description", type: DBEntityFieldType.text),
+        DBEntityField(name: "fullInfoLoaded", type: DBEntityFieldType.int),
+        DBEntityField(name: "lastReadDate", type: DBEntityFieldType.real),
+      ];
 }
 
 class ChapterInfo {

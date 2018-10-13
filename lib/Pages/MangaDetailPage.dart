@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
+import 'package:manga_reader/Model/DBProvider.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
 import 'package:manga_reader/Pages/ReadingPage.dart';
+import 'package:manga_reader/Strings.dart';
 
 class MangaDetailPage extends StatefulWidget {
   final String mangaId;
@@ -15,10 +17,12 @@ class MangaDetailPage extends StatefulWidget {
 }
 
 class _MangaDetailPageState extends State<MangaDetailPage> {
-  MangaInfo _mangaInfo;
+   MangaInfo _mangaInfo;
 
   Future<MangaInfo> _loadManga() async {
-    var fetchResult = await MangaInfo.fetchById(DBManager.db, widget.mangaId);
+    var fetchResult = await DBProvider.dbManager
+          .fetchWithPredicate(MangaInfoDescription(),
+              "id = '${widget.mangaId}'");
     MangaInfo manga = fetchResult.first;
     if (!manga.fullInfoLoaded) {
       var requestInfo = RequestInfo.json(
@@ -27,7 +31,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       var response = await BaseService().performRequest(requestInfo);
       if (response != null) {
         manga = MangaInfo.fromFullMap(widget.mangaId, response);
-        await manga.insert(DBManager.db);
+        await DBProvider.dbManager.insert(description: MangaInfoDescription(), entity: manga);
       }
     }
 
@@ -44,14 +48,14 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     super.initState();
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(_mangaInfo?.title ?? "Loading..."),
       ),
       body: Padding(
-        padding: EdgeInsets.all(10.0),
+        padding: EdgeInsets.symmetric(horizontal: 10.0),
         child: _mangaInfo != null
             ? ListView(children: _description(context))
             : Center(child: CircularProgressIndicator()),

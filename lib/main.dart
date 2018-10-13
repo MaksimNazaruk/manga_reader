@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:manga_reader/Model/MangaModel.dart';
+import 'package:manga_reader/Model/DBProvider.dart';
 import 'package:manga_reader/Pages/HomePage.dart';
 
 void main() {
@@ -10,7 +10,7 @@ void main() {
 }
 
 Future<void> initApp() async {
-  await DBManager.initDatabase();
+  await DBProvider.dbManager.initDatabase();
 }
 
 class App extends StatelessWidget {

@@ -4,6 +4,7 @@ import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:manga_reader/Model/DBProvider.dart';
 
 class ReadingPage extends StatefulWidget {
   final String chapterId;
@@ -18,14 +19,23 @@ class _ReadingPageState extends State<ReadingPage> {
   List<MangaImageInfo> _images;
 
   Future<List<MangaImageInfo>> _loadChapter() async {
-    var requestInfo = RequestInfo.json(
-        type: RequestType.get,
-        url: UrlFormatter().chapter(widget.chapterId).toString());
-    var response = await BaseService().performRequest(requestInfo);
-    return (response["images"] as List)
-        .reversed
-        .map((imageArray) => MangaImageInfo.fromArray(imageArray))
-        .toList();
+    List<MangaImageInfo> images = await DBProvider.dbManager.fetchWithPredicate(
+        MangaImageInfoDescription(), "chapterId = '${widget.chapterId}'");
+    if (images.isEmpty) {
+      var requestInfo = RequestInfo.json(
+          type: RequestType.get,
+          url: UrlFormatter().chapter(widget.chapterId).toString());
+      var response = await BaseService().performRequest(requestInfo);
+      images = (response["images"] as List)
+          .reversed
+          .map((imageArray) =>
+              MangaImageInfo.fromArray(widget.chapterId, imageArray))
+          .toList();
+      await DBProvider.dbManager.insertBatch(
+          description: MangaImageInfoDescription(), entities: images);
+    }
+
+    return images;
   }
 
   @override

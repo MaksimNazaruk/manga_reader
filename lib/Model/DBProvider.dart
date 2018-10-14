@@ -8,5 +8,9 @@ class DBProvider {
 
 class MangaDBModel extends DBModel {
   @override
-  List<DBEntityDescription> get entityDescriptions => [MangaInfoDescription()];
+  List<DBEntityDescription> get entityDescriptions => [
+        MangaInfoDescription(),
+        ChapterInfoDescription(),
+        MangaImageInfoDescription()
+      ];
 }

@@ -1,4 +1,5 @@
 import 'package:manga_reader/Model/DBModel.dart';
+import 'package:manga_reader/Model/DBProvider.dart';
 
 class MangaInfo {
   String id;
@@ -14,15 +15,17 @@ class MangaInfo {
   String description;
   bool fullInfoLoaded;
   double lastReadDate;
+
   List<String> get categories {
     return ["~no categories~"]; // TODO: get actual categories
   }
 
-  MangaInfo();
-
-  List<ChapterInfo> get chapters {
-    return []; // TODO: fetch actual chapters
+  Future<List<ChapterInfo>> get chapters async {
+    return await DBProvider.dbManager
+        .fetchWithPredicate(ChapterInfoDescription(), "mangaId = '$id'");
   }
+
+  MangaInfo();
 
   MangaInfo.fromShortMap(Map<String, dynamic> map) {
     this.id = map["i"];
@@ -46,10 +49,15 @@ class MangaInfo {
     language = map["language"];
     description = map["description"];
     fullInfoLoaded = true;
-    // chapters = (map["chapters"] as List)
-    //     .reversed
-    //     .map((chapterArray) => ChapterInfo.fromArray(chapterArray))
-    //     .toList();
+
+    List<ChapterInfo> chapters = (map["chapters"] as List)
+        .reversed
+        .map((chapterArray) => ChapterInfo.fromArray(id, chapterArray))
+        .toList();
+    DBProvider.dbManager
+        .insertBatch(description: ChapterInfoDescription(), entities: chapters).then((_){
+          print("!@! saved chapters for $title");
+        });
     // categories = List<String>.from(map["categories"] as List);
   }
 }
@@ -119,29 +127,99 @@ class MangaInfoDescription extends DBEntityDescription<MangaInfo> {
 }
 
 class ChapterInfo {
+  final String mangaId;
   final double number;
   final double date;
   final String title;
   final String id;
 
-  ChapterInfo(this.number, this.date, this.title, this.id);
+  ChapterInfo(this.mangaId, this.number, this.date, this.title, this.id);
 
-  factory ChapterInfo.fromArray(List<dynamic> array) {
+  factory ChapterInfo.fromArray(String mangaId, List<dynamic> array) {
     return ChapterInfo(
-        (array[0] as num).toDouble(), array[1], array[2], array[3]);
+        mangaId, (array[0] as num).toDouble(), array[1], array[2], array[3]);
   }
 }
 
+class ChapterInfoDescription extends DBEntityDescription<ChapterInfo> {
+  @override
+  String get tableName => "ChapterInfo";
+
+  @override
+  ChapterInfo fromDBMap(Map<String, dynamic> map) {
+    ChapterInfo entity = ChapterInfo(
+        map["mangaId"], map["number"], map["date"], map["title"], map["id"]);
+    return entity;
+  }
+
+  @override
+  Map<String, dynamic> toDBMap(ChapterInfo entity) {
+    Map<String, dynamic> map = {};
+    map["id"] = entity.id;
+    map["title"] = entity.title;
+    map["number"] = entity.number;
+    map["date"] = entity.date;
+    map["mangaId"] = entity.mangaId;
+
+    return map;
+  }
+
+  @override
+  List<DBEntityField> get fields => [
+        DBEntityField(
+            name: "id", type: DBEntityFieldType.text, isPrimary: true),
+        DBEntityField(name: "title", type: DBEntityFieldType.text),
+        DBEntityField(name: "number", type: DBEntityFieldType.real),
+        DBEntityField(name: "date", type: DBEntityFieldType.real),
+        DBEntityField(name: "mangaId", type: DBEntityFieldType.text),
+      ];
+}
+
 class MangaImageInfo {
+  final String chapterId;
   final double index;
   final String url;
   final int width;
   final int height;
 
-  MangaImageInfo(this.index, this.url, this.width, this.height);
+  MangaImageInfo(this.chapterId, this.index, this.url, this.width, this.height);
 
-  factory MangaImageInfo.fromArray(List<dynamic> array) {
+  factory MangaImageInfo.fromArray(String chapterId, List<dynamic> array) {
     return MangaImageInfo(
-        (array[0] as num).toDouble(), array[1], array[2], array[3]);
+        chapterId, (array[0] as num).toDouble(), array[1], array[2], array[3]);
   }
+}
+
+class MangaImageInfoDescription extends DBEntityDescription<MangaImageInfo> {
+  @override
+  String get tableName => "MangaImageInfo";
+
+  @override
+  MangaImageInfo fromDBMap(Map<String, dynamic> map) {
+    MangaImageInfo entity = MangaImageInfo(map["chapterId"], (map["indexNumber"] as num).toDouble(),
+        map["url"], map["width"], map["height"]);
+    return entity;
+  }
+
+  @override
+  Map<String, dynamic> toDBMap(MangaImageInfo entity) {
+    Map<String, dynamic> map = {};
+    map["chapterId"] = entity.chapterId;
+    map["indexNumber"] = entity.index;
+    map["url"] = entity.url;
+    map["width"] = entity.width;
+    map["height"] = entity.height;
+
+    return map;
+  }
+
+  @override
+  List<DBEntityField> get fields => [
+        DBEntityField(name: "chapterId", type: DBEntityFieldType.text),
+        DBEntityField(name: "indexNumber", type: DBEntityFieldType.int),
+        DBEntityField(
+            name: "url", type: DBEntityFieldType.text, isPrimary: true),
+        DBEntityField(name: "width", type: DBEntityFieldType.int),
+        DBEntityField(name: "height", type: DBEntityFieldType.int),
+      ];
 }

@@ -17,6 +17,8 @@ class DBEntityField {
   final String name;
   final DBEntityFieldType type;
   final bool isPrimary; // only one field can be primary
+  // final dynamic Function() getValue;
+  // final Function(dynamic newValue) setValue;
   // DBEntityDescription
   //     referenceEntityDescription; // used for entity-based fields of types entity and array
 
@@ -50,6 +52,16 @@ abstract class DBEntityDescription<T> {
         fields.map((field) => field.sqlDescription).toList().join(", ");
     return "$tableName ($fieldsDescription)";
   }
+
+  // T fromDBMap(Map<String, dynamic> map) {}
+
+  // Map<String, dynamic> toDBMap(T entity) {
+  //   Map<String, dynamic> map = {};
+  //   fields.forEach((field) {
+  //     map[field.name] = field.getField(entity);
+  //   });
+  //   return map;
+  // }
 }
 
 class DBModel {

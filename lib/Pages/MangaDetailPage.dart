@@ -17,21 +17,23 @@ class MangaDetailPage extends StatefulWidget {
 }
 
 class _MangaDetailPageState extends State<MangaDetailPage> {
-   MangaInfo _mangaInfo;
+  MangaInfo _mangaInfo;
+  List<ChapterInfo> _chapters;
 
   Future<MangaInfo> _loadManga() async {
-    var fetchResult = await DBProvider.dbManager
-          .fetchWithPredicate(MangaInfoDescription(),
-              "id = '${widget.mangaId}'");
-    MangaInfo manga = fetchResult.first;
-    if (!manga.fullInfoLoaded) {
+    var fetchResult = await DBProvider.dbManager.fetchWithPredicate(
+        MangaInfoDescription(),
+        "id = '${widget.mangaId}' AND fullInfoLoaded = 1");
+    MangaInfo manga = fetchResult.isNotEmpty ? fetchResult.first : null;
+    if (manga == null) {
       var requestInfo = RequestInfo.json(
           type: RequestType.get,
           url: UrlFormatter().manga(widget.mangaId).toString());
       var response = await BaseService().performRequest(requestInfo);
       if (response != null) {
         manga = MangaInfo.fromFullMap(widget.mangaId, response);
-        await DBProvider.dbManager.insert(description: MangaInfoDescription(), entity: manga);
+        await DBProvider.dbManager
+            .insert(description: MangaInfoDescription(), entity: manga);
       }
     }
 
@@ -41,14 +43,17 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   @override
   void initState() {
     _loadManga().then((mangaInfo) {
-      setState(() {
-        _mangaInfo = mangaInfo;
+      mangaInfo.chapters.then((chapters) {
+        setState(() {
+          _mangaInfo = mangaInfo;
+          _chapters = chapters;
+        });
       });
     });
     super.initState();
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -81,15 +86,19 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
           padding: EdgeInsets.symmetric(vertical: 10.0),
           child: Text("Description:\n${_mangaInfo.description}"))
     ];
-    widgets.addAll(_mangaInfo.chapters.map((chapter) => RaisedButton(
-          color: Theme.of(context).accentColor,
-          child: Text(
-              "Chapter ${chapter.number.toStringAsFixed(chapter.number.truncateToDouble() == chapter.number ? 0 : 2)}: ${chapter.title}"),
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => ReadingPage(chapter.id)));
-          },
-        )));
+
+    widgets.addAll(_chapters
+        .map((chapter) => RaisedButton(
+              color: Theme.of(context).accentColor,
+              child: Text(
+                  "Chapter ${chapter.number.toStringAsFixed(chapter.number.truncateToDouble() == chapter.number ? 0 : 2)}: ${chapter.title}"),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => ReadingPage(chapter.id)));
+              },
+            ))
+        .toList());
+
     return widgets;
   }
 }

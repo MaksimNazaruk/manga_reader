@@ -47,6 +47,9 @@ class _HomePageState extends State<HomePage> {
                         onChanged: (newSearchValue) {
                           _searchTitle = newSearchValue;
                         },
+                        onSubmitted: (_) {
+                          _performSearch();
+                        },
                       ),
                     ),
                     FlatButton(
@@ -61,7 +64,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Expanded(
               child: GridView.count(
-                crossAxisCount: 2,
+                crossAxisCount: 3,
                 crossAxisSpacing: 8.0,
                 mainAxisSpacing: 8.0,
                 padding: EdgeInsets.all(8.0),
@@ -74,8 +77,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<MangaInfo>> _loadList() async {
-    List<MangaInfo> mangas =
-        await DBProvider.dbManager.fetchAll(MangaInfoDescription());
+    List<MangaInfo> mangas = await DBProvider.dbManager.fetchAll(
+        MangaInfoDescription(),
+        ordering: "isFavourite DESC, hits DESC");
 
     if (mangas == null || mangas.isEmpty) {
       var requestInfo = RequestInfo.json(
@@ -84,9 +88,8 @@ class _HomePageState extends State<HomePage> {
       mangas = (response["manga"] as List)
           .map((mangaMap) => MangaInfo.fromShortMap(mangaMap))
           .toList();
-      await DBProvider.dbManager.insertBatch(
-          description: MangaInfoDescription(),
-          entities: mangas); //MangaInfo.insertBatch(DBManager.db, mangas);
+      await DBProvider.dbManager
+          .insertBatch(description: MangaInfoDescription(), entities: mangas);
     }
 
     return mangas;
@@ -103,7 +106,10 @@ class _HomePageState extends State<HomePage> {
         });
       });
     } else {
-      DBProvider.dbManager.fetchAll(MangaInfoDescription()).then((allMangas) {
+      DBProvider.dbManager
+          .fetchAll(MangaInfoDescription(),
+              ordering: "isFavourite DESC, hits DESC")
+          .then((allMangas) {
         setState(() {
           _mangaList = allMangas;
         });

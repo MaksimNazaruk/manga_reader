@@ -13,17 +13,21 @@ enum DBEntityFieldType {
   // array // TODO: how?
 }
 
-class DBEntityField {
+class DBEntityField<T> {
   final String name;
   final DBEntityFieldType type;
   final bool isPrimary; // only one field can be primary
-  // final dynamic Function() getValue;
-  // final Function(dynamic newValue) setValue;
+  final dynamic Function(T entity) getValue;
+  final Function(T entity, dynamic newValue) setValue;
   // DBEntityDescription
   //     referenceEntityDescription; // used for entity-based fields of types entity and array
 
   DBEntityField(
-      {@required this.name, @required this.type, this.isPrimary = false});
+      {@required this.name,
+      @required this.type,
+      this.isPrimary = false,
+      this.getValue,
+      this.setValue});
 
   Map<DBEntityFieldType, String> _sqlDataTypes = {
     DBEntityFieldType.text: "TEXT",
@@ -42,10 +46,11 @@ class DBEntityField {
 }
 
 abstract class DBEntityDescription<T> {
-  List<DBEntityField> get fields;
+  List<DBEntityField<T>> get fields;
   String get tableName;
-  T fromDBMap(Map<String, dynamic> map);
-  Map<String, dynamic> toDBMap(T entity);
+  T newEntity();
+  // T fromDBMap(Map<String, dynamic> map);
+  // Map<String, dynamic> toDBMap(T entity);
 
   String get sqlDescription {
     String fieldsDescription =
@@ -53,15 +58,21 @@ abstract class DBEntityDescription<T> {
     return "$tableName ($fieldsDescription)";
   }
 
-  // T fromDBMap(Map<String, dynamic> map) {}
+  T fromDBMap(Map<String, dynamic> map) {
+    T entity = newEntity();
+    fields.forEach((field) {
+      field.setValue(entity, map[field.name]);
+    });
+    return entity;
+  }
 
-  // Map<String, dynamic> toDBMap(T entity) {
-  //   Map<String, dynamic> map = {};
-  //   fields.forEach((field) {
-  //     map[field.name] = field.getField(entity);
-  //   });
-  //   return map;
-  // }
+  Map<String, dynamic> toDBMap(T entity) {
+    Map<String, dynamic> map = {};
+    fields.forEach((field) {
+      map[field.name] = field.getValue(entity);
+    });
+    return map;
+  }
 }
 
 class DBModel {
@@ -107,26 +118,17 @@ class DBManager {
     await batch.commit(noResult: true);
   }
 
-  Future<List<T>> fetchAll<T>(DBEntityDescription<T> description) async {
-    List fetchResult = await _db.query(description.tableName); // TODO: ordering
+  Future<List<T>> fetchAll<T>(DBEntityDescription<T> description,
+      {String ordering}) async {
+    List fetchResult = await _db.query(description.tableName,
+        orderBy: ordering);
     return fetchResult.map((map) => description.fromDBMap(map)).toList();
   }
 
   Future<List<T>> fetchWithPredicate<T>(
-      DBEntityDescription<T> description, String predicate) async {
+      DBEntityDescription<T> description, String predicate, {String ordering}) async {
     List fetchResult = await _db.query(description.tableName,
-        where: predicate); // TODO: ordering
+        where: predicate, orderBy: ordering);
     return fetchResult.map((map) => description.fromDBMap(map)).toList();
   }
-
-  // static Future<List<MangaInfo>> fetchByTitle(Database db, String title) async {
-  //   List fetchResult = await db.query(_tableName,
-  //       where: "title LIKE '%$title%' COLLATE NOCASE", orderBy: "hits DESC");
-  //   return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
-  // }
-
-  // static Future<List<MangaInfo>> fetchById(Database db, String id) async {
-  //   List fetchResult = await db.query(_tableName, where: "id = '$id'");
-  //   return fetchResult.map((map) => MangaInfo.fromDBMap(map)).toList();
-  // }
 }

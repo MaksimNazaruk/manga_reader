@@ -24,10 +24,6 @@ class PosterCell extends StatelessWidget {
                 color: Theme.of(context).disabledColor,
                 child: _posterImage(posterUrl)),
           ),
-          Banner(
-            message: "$hits",
-            location: BannerLocation.topEnd,
-          ),
           Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,18 +75,23 @@ class PosterCell extends StatelessWidget {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                  Icon(Icons.error, size: 64.0),
+                  Icon(Icons.error, size: 32.0),
                   SizedBox(height: 4.0),
-                  Text("Couldn't load poster")
+                  Text(
+                    "Couldn't load poster",
+                    textAlign: TextAlign.center,
+                  )
                 ])),
           )
         : Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                Icon(Icons.find_in_page, size: 64.0),
-                SizedBox(height: 4.0),
-                Text("No poster")
-              ]));
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(Icons.find_in_page, size: 32.0),
+            SizedBox(height: 4.0),
+            Text(
+              "No poster",
+              textAlign: TextAlign.center,
+            )
+          ]));
   }
 }

@@ -5,6 +5,7 @@ import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/DBProvider.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
 import 'package:manga_reader/Pages/ReadingPage.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'package:manga_reader/Strings.dart';
 
 class MangaDetailPage extends StatefulWidget {
@@ -58,6 +59,15 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_mangaInfo?.title ?? "Loading..."),
+        actions: [
+          FlatButton.icon(
+            icon: Icon(_mangaInfo?.isFavourite ?? false ? Icons.star : Icons.star_border),
+            label: Text(""),
+            onPressed: () {
+              _toggleFavourite();
+            },
+          )
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -66,6 +76,13 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
             : Center(child: CircularProgressIndicator()),
       ),
     );
+  }
+
+  void _toggleFavourite() async {
+    _mangaInfo.isFavourite = !_mangaInfo.isFavourite;
+    await DBProvider.dbManager
+        .insert(description: MangaInfoDescription(), entity: _mangaInfo);
+    setState(() {});
   }
 
   List<Widget> _description(BuildContext context) {
@@ -77,14 +94,16 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
             style: Theme.of(context).textTheme.title,
           )),
       Padding(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
-          child: Text("Author:\n${_mangaInfo.author ?? "N\A"}")),
+          padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+          child: Text("Author: ${_mangaInfo.author ?? "N\A"}")),
+      Text("Artist: ${_mangaInfo.artist ?? "N\A"}"),
       Padding(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
           child: Text("Categories:\n${_mangaInfo.categories.join(", ")}")),
       Padding(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
-          child: Text("Description:\n${_mangaInfo.description}"))
+          padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+          child: Text(
+              "Description:\n${HtmlUnescape().convert(_mangaInfo.description)}"))
     ];
 
     widgets.addAll(_chapters

@@ -15,6 +15,7 @@ class MangaInfo {
   String description;
   bool fullInfoLoaded;
   double lastReadDate;
+  bool isFavourite = false;
 
   List<String> get categories {
     return ["~no categories~"]; // TODO: get actual categories
@@ -55,9 +56,10 @@ class MangaInfo {
         .map((chapterArray) => ChapterInfo.fromArray(id, chapterArray))
         .toList();
     DBProvider.dbManager
-        .insertBatch(description: ChapterInfoDescription(), entities: chapters).then((_){
-          print("!@! saved chapters for $title");
-        });
+        .insertBatch(description: ChapterInfoDescription(), entities: chapters)
+        .then((_) {
+      print("!@! saved chapters for $title");
+    });
     // categories = List<String>.from(map["categories"] as List);
   }
 }
@@ -67,77 +69,127 @@ class MangaInfoDescription extends DBEntityDescription<MangaInfo> {
   String get tableName => "MangaInfo";
 
   @override
-  MangaInfo fromDBMap(Map<String, dynamic> map) {
-    MangaInfo entity = MangaInfo();
-    entity
-      ..id = map["id"]
-      ..title = map["title"]
-      ..alias = map["alias"]
-      ..posterUrl = map["posterUrl"]
-      ..hits = map["hits"]
-      ..author = map["author"]
-      ..artist = map["artist"]
-      ..chaptersNumber = map["chaptersNumber"]
-      ..releaseYear = map["releaseYear"]
-      ..language = map["language"]
-      ..description = map["description"]
-      ..fullInfoLoaded = map["fullInfoLoaded"] == 1 ? true : false
-      ..lastReadDate = map["lastReadDate"];
-
-    return entity;
-  }
+  MangaInfo newEntity() => MangaInfo();
 
   @override
-  Map<String, dynamic> toDBMap(MangaInfo entity) {
-    Map<String, dynamic> map = {};
-    map["id"] = entity.id;
-    map["title"] = entity.title;
-    map["alias"] = entity.alias;
-    map["posterUrl"] = entity.posterUrl;
-    map["hits"] = entity.hits;
-    map["author"] = entity.author;
-    map["artist"] = entity.artist;
-    map["chaptersNumber"] = entity.chaptersNumber;
-    map["releaseYear"] = entity.releaseYear;
-    map["language"] = entity.language;
-    map["description"] = entity.description;
-    map["fullInfoLoaded"] = entity.fullInfoLoaded ? 1 : 0;
-    map["lastReadDate"] = entity.lastReadDate;
-
-    return map;
-  }
-
-  @override
-  List<DBEntityField> get fields => [
+  List<DBEntityField<MangaInfo>> get fields => [
         DBEntityField(
-            name: "id", type: DBEntityFieldType.text, isPrimary: true),
-        DBEntityField(name: "title", type: DBEntityFieldType.text),
-        DBEntityField(name: "alias", type: DBEntityFieldType.text),
-        DBEntityField(name: "posterUrl", type: DBEntityFieldType.text),
-        DBEntityField(name: "hits", type: DBEntityFieldType.int),
-        DBEntityField(name: "author", type: DBEntityFieldType.text),
-        DBEntityField(name: "artist", type: DBEntityFieldType.text),
-        DBEntityField(name: "chaptersNumber", type: DBEntityFieldType.int),
-        DBEntityField(name: "releaseYear", type: DBEntityFieldType.int),
-        DBEntityField(name: "language", type: DBEntityFieldType.int),
-        DBEntityField(name: "description", type: DBEntityFieldType.text),
-        DBEntityField(name: "fullInfoLoaded", type: DBEntityFieldType.int),
-        DBEntityField(name: "lastReadDate", type: DBEntityFieldType.real),
+            name: "id",
+            type: DBEntityFieldType.text,
+            isPrimary: true,
+            getValue: (entity) => entity.id,
+            setValue: (entity, value) {
+              entity.id = value;
+            }),
+        DBEntityField(
+            name: "title",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.title,
+            setValue: (entity, value) {
+              entity.title = value;
+            }),
+        DBEntityField(
+            name: "alias",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.alias,
+            setValue: (entity, value) {
+              entity.alias = value;
+            }),
+        DBEntityField(
+            name: "posterUrl",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.posterUrl,
+            setValue: (entity, value) {
+              entity.posterUrl = value;
+            }),
+        DBEntityField(
+            name: "hits",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.hits,
+            setValue: (entity, value) {
+              entity.hits = value;
+            }),
+        DBEntityField(
+            name: "author",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.author,
+            setValue: (entity, value) {
+              entity.author = value;
+            }),
+        DBEntityField(
+            name: "artist",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.artist,
+            setValue: (entity, value) {
+              entity.artist = value;
+            }),
+        DBEntityField(
+            name: "chaptersNumber",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.chaptersNumber,
+            setValue: (entity, value) {
+              entity.chaptersNumber = value;
+            }),
+        DBEntityField(
+            name: "releaseYear",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.releaseYear,
+            setValue: (entity, value) {
+              entity.releaseYear = value;
+            }),
+        DBEntityField(
+            name: "language",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.language,
+            setValue: (entity, value) {
+              entity.language = value;
+            }),
+        DBEntityField(
+            name: "description",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.description,
+            setValue: (entity, value) {
+              entity.description = value;
+            }),
+        DBEntityField(
+            name: "fullInfoLoaded",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.fullInfoLoaded ? 1 : 0,
+            setValue: (entity, value) {
+              entity.fullInfoLoaded = value == 1 ? true : false;
+            }),
+        DBEntityField(
+            name: "lastReadDate",
+            type: DBEntityFieldType.real,
+            getValue: (entity) => entity.lastReadDate,
+            setValue: (entity, value) {
+              entity.lastReadDate = value;
+            }),
+        DBEntityField(
+            name: "isFavourite",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.isFavourite ? 1 : 0,
+            setValue: (entity, value) {
+              entity.isFavourite = value == 1 ? true : false;
+            }),
       ];
 }
 
 class ChapterInfo {
-  final String mangaId;
-  final double number;
-  final double date;
-  final String title;
-  final String id;
+  String mangaId;
+  double number;
+  double date;
+  String title;
+  String id;
 
-  ChapterInfo(this.mangaId, this.number, this.date, this.title, this.id);
+  ChapterInfo();
 
-  factory ChapterInfo.fromArray(String mangaId, List<dynamic> array) {
-    return ChapterInfo(
-        mangaId, (array[0] as num).toDouble(), array[1], array[2], array[3]);
+  ChapterInfo.fromArray(String mangaId, List<dynamic> array) {
+    this.mangaId = mangaId;
+    this.number = (array[0] as num).toDouble();
+    this.date = array[1];
+    this.title = array[2];
+    this.id = array[3];
   }
 }
 
@@ -146,47 +198,64 @@ class ChapterInfoDescription extends DBEntityDescription<ChapterInfo> {
   String get tableName => "ChapterInfo";
 
   @override
-  ChapterInfo fromDBMap(Map<String, dynamic> map) {
-    ChapterInfo entity = ChapterInfo(
-        map["mangaId"], map["number"], map["date"], map["title"], map["id"]);
-    return entity;
-  }
+  ChapterInfo newEntity() => ChapterInfo();
 
   @override
-  Map<String, dynamic> toDBMap(ChapterInfo entity) {
-    Map<String, dynamic> map = {};
-    map["id"] = entity.id;
-    map["title"] = entity.title;
-    map["number"] = entity.number;
-    map["date"] = entity.date;
-    map["mangaId"] = entity.mangaId;
-
-    return map;
-  }
-
-  @override
-  List<DBEntityField> get fields => [
+  List<DBEntityField<ChapterInfo>> get fields => [
         DBEntityField(
-            name: "id", type: DBEntityFieldType.text, isPrimary: true),
-        DBEntityField(name: "title", type: DBEntityFieldType.text),
-        DBEntityField(name: "number", type: DBEntityFieldType.real),
-        DBEntityField(name: "date", type: DBEntityFieldType.real),
-        DBEntityField(name: "mangaId", type: DBEntityFieldType.text),
+            name: "id",
+            type: DBEntityFieldType.text,
+            isPrimary: true,
+            getValue: (entity) => entity.id,
+            setValue: (entity, value) {
+              entity.id = value;
+            }),
+        DBEntityField(
+            name: "title",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.title,
+            setValue: (entity, value) {
+              entity.title = value;
+            }),
+        DBEntityField(
+            name: "number",
+            type: DBEntityFieldType.real,
+            getValue: (entity) => entity.number,
+            setValue: (entity, value) {
+              entity.number = value;
+            }),
+        DBEntityField(
+            name: "date",
+            type: DBEntityFieldType.real,
+            getValue: (entity) => entity.date,
+            setValue: (entity, value) {
+              entity.date = value;
+            }),
+        DBEntityField(
+            name: "mangaId",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.mangaId,
+            setValue: (entity, value) {
+              entity.mangaId = value;
+            }),
       ];
 }
 
 class MangaImageInfo {
-  final String chapterId;
-  final double index;
-  final String url;
-  final int width;
-  final int height;
+  String chapterId;
+  double index;
+  String url;
+  int width;
+  int height;
 
-  MangaImageInfo(this.chapterId, this.index, this.url, this.width, this.height);
+  MangaImageInfo();
 
-  factory MangaImageInfo.fromArray(String chapterId, List<dynamic> array) {
-    return MangaImageInfo(
-        chapterId, (array[0] as num).toDouble(), array[1], array[2], array[3]);
+  MangaImageInfo.fromArray(String chapterId, List<dynamic> array) {
+    this.chapterId = chapterId;
+    this.index = (array[0] as num).toDouble();
+    this.url = array[1];
+    this.width = array[2];
+    this.height = array[3];
   }
 }
 
@@ -195,31 +264,45 @@ class MangaImageInfoDescription extends DBEntityDescription<MangaImageInfo> {
   String get tableName => "MangaImageInfo";
 
   @override
-  MangaImageInfo fromDBMap(Map<String, dynamic> map) {
-    MangaImageInfo entity = MangaImageInfo(map["chapterId"], (map["indexNumber"] as num).toDouble(),
-        map["url"], map["width"], map["height"]);
-    return entity;
-  }
+  MangaImageInfo newEntity() => MangaImageInfo();
 
   @override
-  Map<String, dynamic> toDBMap(MangaImageInfo entity) {
-    Map<String, dynamic> map = {};
-    map["chapterId"] = entity.chapterId;
-    map["indexNumber"] = entity.index;
-    map["url"] = entity.url;
-    map["width"] = entity.width;
-    map["height"] = entity.height;
-
-    return map;
-  }
-
-  @override
-  List<DBEntityField> get fields => [
-        DBEntityField(name: "chapterId", type: DBEntityFieldType.text),
-        DBEntityField(name: "indexNumber", type: DBEntityFieldType.int),
+  List<DBEntityField<MangaImageInfo>> get fields => [
         DBEntityField(
-            name: "url", type: DBEntityFieldType.text, isPrimary: true),
-        DBEntityField(name: "width", type: DBEntityFieldType.int),
-        DBEntityField(name: "height", type: DBEntityFieldType.int),
+            name: "chapterId",
+            type: DBEntityFieldType.text,
+            getValue: (entity) => entity.chapterId,
+            setValue: (entity, value) {
+              entity.chapterId = value;
+            }),
+        DBEntityField(
+            name: "indexNumber",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.index,
+            setValue: (entity, value) {
+              entity.index = value;
+            }),
+        DBEntityField(
+            name: "url",
+            type: DBEntityFieldType.text,
+            isPrimary: true,
+            getValue: (entity) => entity.url,
+            setValue: (entity, value) {
+              entity.url = value;
+            }),
+        DBEntityField(
+            name: "width",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.width,
+            setValue: (entity, value) {
+              entity.width = value;
+            }),
+        DBEntityField(
+            name: "height",
+            type: DBEntityFieldType.int,
+            getValue: (entity) => entity.height,
+            setValue: (entity, value) {
+              entity.height = value;
+            }),
       ];
 }

@@ -6,7 +6,6 @@ import 'package:manga_reader/Model/DBProvider.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
 import 'package:manga_reader/Pages/ReadingPage.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:manga_reader/Strings.dart';
 
 class MangaDetailPage extends StatefulWidget {
   final String mangaId;

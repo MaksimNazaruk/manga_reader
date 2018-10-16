@@ -222,7 +222,7 @@ class ChapterInfoDescription extends DBEntityDescription<ChapterInfo> {
             type: DBEntityFieldType.real,
             getValue: (entity) => entity.number,
             setValue: (entity, value) {
-              entity.number = value;
+              entity.number = (value as num).toDouble();
             }),
         DBEntityField(
             name: "date",
@@ -280,7 +280,7 @@ class MangaImageInfoDescription extends DBEntityDescription<MangaImageInfo> {
             type: DBEntityFieldType.int,
             getValue: (entity) => entity.index,
             setValue: (entity, value) {
-              entity.index = value;
+              entity.index = (value as num).toDouble();
             }),
         DBEntityField(
             name: "url",

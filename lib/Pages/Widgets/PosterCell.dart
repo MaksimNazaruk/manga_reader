@@ -4,10 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 class PosterCell extends StatelessWidget {
   final String title;
   final String posterUrl;
-  final int hits;
+  final bool isFavourite;
   final VoidCallback onTap;
 
-  PosterCell({this.title, this.posterUrl, this.hits, this.onTap});
+  PosterCell({this.title, this.posterUrl, this.isFavourite, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +25,17 @@ class PosterCell extends StatelessWidget {
                 child: _posterImage(posterUrl)),
           ),
           Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+              // mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Container(
+                    height: 25.0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: _statusIcons,
+                    )),
+                Expanded(child: Material(color: Colors.transparent)),
                 SizedBox(
                     height: 50.0,
                     child: DecoratedBox(
@@ -63,6 +71,15 @@ class PosterCell extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<Widget> get _statusIcons {
+    double iconSize = 22.0;
+    List<Widget> icons = [];
+    if (isFavourite) {
+      icons.add(Icon(Icons.star, size: iconSize));
+    }
+    return icons;
   }
 
   Widget _posterImage(String posterUrl) {

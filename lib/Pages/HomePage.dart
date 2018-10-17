@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
           posterUrl: manga.posterUrl != null
               ? UrlFormatter().image(manga.posterUrl).toString()
               : null,
-          hits: manga.hits,
+          isFavourite: manga.isFavourite,
           onTap: (() {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => MangaDetailPage(manga.id)));

@@ -6,6 +6,7 @@ class ChapterInfo {
   double date;
   String title;
   String id;
+  int lastReadDate;
 
   ChapterInfo();
 
@@ -62,6 +63,15 @@ class ChapterInfoDescription extends DBEntityDescription<ChapterInfo> {
             getValue: (entity) => entity.mangaId,
             setValue: (entity, value) {
               entity.mangaId = value;
+            }),
+        DBEntityField(
+            name: "lastReadDate",
+            type: DBEntityFieldType.int,
+            nullable: false,
+            defaultValue: 0,
+            getValue: (entity) => entity.lastReadDate,
+            setValue: (entity, value) {
+              entity.lastReadDate = value;
             }),
       ];
 }

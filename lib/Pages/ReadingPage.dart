@@ -43,9 +43,18 @@ class _ReadingPageState extends State<ReadingPage> {
     _loadChapter().then((images) {
       setState(() {
         _images = images;
+        _updateLastReadDate();
       });
     });
     super.initState();
+  }
+
+  void _updateLastReadDate() async {
+    ChapterInfo chapterInfo = await DBProvider.dbManager
+        .fetchByKey(ChapterInfoDescription(), widget.chapterId);
+    chapterInfo.lastReadDate = DateTime.now().millisecondsSinceEpoch;
+    DBProvider.dbManager
+        .insert(description: ChapterInfoDescription(), entity: chapterInfo);
   }
 
   @override

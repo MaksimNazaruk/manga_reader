@@ -24,7 +24,7 @@ class MangaInfo {
 
   Future<List<ChapterInfo>> get chapters async {
     return await DBProvider.dbManager
-        .fetchWithPredicate(ChapterInfoDescription(), "mangaId = '$id'");
+        .fetchWithPredicate(ChapterInfoDescription(), "mangaId = '$id'", ordering: "number ASC");
   }
 
   MangaInfo();

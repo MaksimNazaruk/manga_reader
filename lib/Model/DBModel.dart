@@ -16,7 +16,9 @@ enum DBEntityFieldType {
 class DBEntityField<T> {
   final String name;
   final DBEntityFieldType type;
+  final bool nullable;
   final bool isPrimary; // only one field can be primary
+  final dynamic defaultValue;
   final dynamic Function(T entity) getValue;
   final Function(T entity, dynamic newValue) setValue;
   // DBEntityDescription
@@ -25,7 +27,9 @@ class DBEntityField<T> {
   DBEntityField(
       {@required this.name,
       @required this.type,
+      this.nullable = true,
       this.isPrimary = false,
+      this.defaultValue = null,
       this.getValue,
       this.setValue});
 
@@ -41,6 +45,13 @@ class DBEntityField<T> {
     if (isPrimary) {
       description += " PRIMARY KEY";
     }
+    if (defaultValue != null) {
+      String value = (defaultValue is String) ? "'$defaultValue'" : "$defaultValue";
+      description += " DEFAULT $value";
+    }
+    if (!nullable) {
+      description += " NOT NULL";
+    }
     return description;
   }
 }
@@ -49,8 +60,12 @@ abstract class DBEntityDescription<T> {
   List<DBEntityField<T>> get fields;
   String get tableName;
   T newEntity();
-  // T fromDBMap(Map<String, dynamic> map);
-  // Map<String, dynamic> toDBMap(T entity);
+
+  DBEntityField<T> get keyField {
+    return fields.firstWhere((field) {
+      return field.isPrimary;
+    });
+  }
 
   String get sqlDescription {
     String fieldsDescription =
@@ -120,15 +135,26 @@ class DBManager {
 
   Future<List<T>> fetchAll<T>(DBEntityDescription<T> description,
       {String ordering}) async {
-    List fetchResult = await _db.query(description.tableName,
-        orderBy: ordering);
+    List fetchResult =
+        await _db.query(description.tableName, orderBy: ordering);
     return fetchResult.map((map) => description.fromDBMap(map)).toList();
   }
 
   Future<List<T>> fetchWithPredicate<T>(
-      DBEntityDescription<T> description, String predicate, {String ordering}) async {
+      DBEntityDescription<T> description, String predicate,
+      {String ordering}) async {
     List fetchResult = await _db.query(description.tableName,
         where: predicate, orderBy: ordering);
     return fetchResult.map((map) => description.fromDBMap(map)).toList();
+  }
+
+  Future<T> fetchByKey<T>(
+      DBEntityDescription<T> description, dynamic key) async {
+        // TODO: check correspondence of key to the actual field type?
+    String keyFieldName = description.keyField.name;
+    String valueDescription = key is String ? "'$key'" : "$key";
+    List fetchResult = await _db.query(description.tableName, where: "$keyFieldName = $valueDescription");
+    var result = fetchResult.map((map) => description.fromDBMap(map)).toList();
+    return result.isNotEmpty ? result.first : null;
   }
 }

@@ -42,15 +42,17 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
 
   @override
   void initState() {
-    _loadManga().then((mangaInfo) {
-      mangaInfo.chapters.then((chapters) {
-        setState(() {
-          _mangaInfo = mangaInfo;
-          _chapters = chapters;
-        });
-      });
-    });
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() async {
+    var mangaInfo = await _loadManga();
+    var chapters = await mangaInfo.chapters;
+    setState(() {
+      _mangaInfo = mangaInfo;
+      _chapters = chapters;
+    });
   }
 
   @override
@@ -59,13 +61,16 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       appBar: AppBar(
         title: Text(_mangaInfo?.title ?? "Loading..."),
         actions: [
-          FlatButton.icon(
-            icon: Icon(_mangaInfo?.isFavourite ?? false ? Icons.star : Icons.star_border),
-            label: Text(""),
-            onPressed: () {
-              _toggleFavourite();
-            },
-          )
+          Container(
+              width: 64.0,
+              child: InkWell(
+                onTap: () {
+                  _toggleFavourite();
+                },
+                child: Icon(_mangaInfo?.isFavourite ?? false
+                    ? Icons.star
+                    : Icons.star_border),
+              )),
         ],
       ),
       body: Padding(
@@ -105,9 +110,25 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
               "Description:\n${HtmlUnescape().convert(_mangaInfo.description)}"))
     ];
 
+    var sortedChapters = List.from(_chapters);
+    sortedChapters.sort((a, b) => b.lastReadDate - a.lastReadDate);
+    var mostRecentlyReadChapter = sortedChapters.first;
+    if (mostRecentlyReadChapter.lastReadDate > 0) {
+      widgets.add(RaisedButton(
+        color: Theme.of(context).accentColor,
+        child: Text("Continue reading"),
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => ReadingPage(mostRecentlyReadChapter.id)));
+        },
+      ));
+    }
+
     widgets.addAll(_chapters
         .map((chapter) => RaisedButton(
-              color: Theme.of(context).accentColor,
+              color: chapter.lastReadDate > 0
+                  ? Theme.of(context).disabledColor
+                  : Theme.of(context).backgroundColor,
               child: Text(
                   "Chapter ${chapter.number.toStringAsFixed(chapter.number.truncateToDouble() == chapter.number ? 0 : 2)}: ${chapter.title}"),
               onPressed: () {

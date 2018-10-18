@@ -17,19 +17,21 @@ class ReadingPage extends StatefulWidget {
 
 class _ReadingPageState extends State<ReadingPage> {
   List<MangaImageInfo> _images;
+  String _nextChapterId;
+  String _currentChapterId;
 
   Future<List<MangaImageInfo>> _loadChapter() async {
     List<MangaImageInfo> images = await DBProvider.dbManager.fetchWithPredicate(
-        MangaImageInfoDescription(), "chapterId = '${widget.chapterId}'");
+        MangaImageInfoDescription(), "chapterId = '$_currentChapterId'");
     if (images.isEmpty) {
       var requestInfo = RequestInfo.json(
           type: RequestType.get,
-          url: UrlFormatter().chapter(widget.chapterId).toString());
+          url: UrlFormatter().chapter(_currentChapterId).toString());
       var response = await BaseService().performRequest(requestInfo);
       images = (response["images"] as List)
           .reversed
           .map((imageArray) =>
-              MangaImageInfo.fromArray(widget.chapterId, imageArray))
+              MangaImageInfo.fromArray(_currentChapterId, imageArray))
           .toList();
       await DBProvider.dbManager.insertBatch(
           description: MangaImageInfoDescription(), entities: images);
@@ -40,28 +42,56 @@ class _ReadingPageState extends State<ReadingPage> {
 
   @override
   void initState() {
-    _loadChapter().then((images) {
-      setState(() {
-        _images = images;
-        _updateLastReadDate();
-      });
-    });
+    _currentChapterId = widget.chapterId;
+    _loadData();
     super.initState();
+  }
+
+  void _loadData() async {
+    var images = await _loadChapter();
+    var nextChapterId = await _getNextChapterId();
+    setState(() {
+      _images = images;
+      _nextChapterId = nextChapterId;
+      _updateLastReadDate();
+    });
   }
 
   void _updateLastReadDate() async {
     ChapterInfo chapterInfo = await DBProvider.dbManager
-        .fetchByKey(ChapterInfoDescription(), widget.chapterId);
+        .fetchByKey(ChapterInfoDescription(), _currentChapterId);
     chapterInfo.lastReadDate = DateTime.now().millisecondsSinceEpoch;
     DBProvider.dbManager
         .insert(description: ChapterInfoDescription(), entity: chapterInfo);
   }
 
+  Future<String> _getNextChapterId() async {
+    var currentChapter = await DBProvider.dbManager
+        .fetchByKey(ChapterInfoDescription(), _currentChapterId);
+    var nextChapters = await DBProvider.dbManager.fetchWithPredicate(
+        ChapterInfoDescription(),
+        "mangaId = '${currentChapter.mangaId}' AND number > ${currentChapter.number}",
+        ordering: "number ASC");
+    return nextChapters.first.id;
+  }
+
   @override
   Widget build(BuildContext context) {
+    List<Widget> widgets = [];
+    var images = _imagesList();
+    if (images != null) {
+      widgets.addAll(images);
+    }
+    widgets.add(RaisedButton(
+      child: Text("Next chapter"),
+      onPressed: () {
+        _currentChapterId = _nextChapterId;
+        _loadData();
+      },
+    ));
     return Scaffold(
         body: _images != null
-            ? ListView(children: _imagesList())
+            ? ListView(children: widgets)
             : Center(child: CircularProgressIndicator()));
   }
 
@@ -70,7 +100,7 @@ class _ReadingPageState extends State<ReadingPage> {
         .map((imageInfo) => AspectRatio(
             aspectRatio: imageInfo.width / imageInfo.height,
             child: _pageImage(UrlFormatter().image(imageInfo.url).toString())))
-        .toList();
+        .toList().cast<Widget>();
   }
 
   Widget _pageImage(String imageUrl) {

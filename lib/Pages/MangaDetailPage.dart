@@ -118,7 +118,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
         color: Theme.of(context).accentColor,
         child: Text("Continue reading"),
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
+          Navigator.of(context).push(MaterialPageRoute(maintainState: false,
               builder: (context) => ReadingPage(mostRecentlyReadChapter.id)));
         },
       ));
@@ -132,7 +132,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
               child: Text(
                   "Chapter ${chapter.number.toStringAsFixed(chapter.number.truncateToDouble() == chapter.number ? 0 : 2)}: ${chapter.title}"),
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
+                Navigator.of(context).push(MaterialPageRoute(maintainState: false,
                     builder: (context) => ReadingPage(chapter.id)));
               },
             ))

@@ -49,10 +49,12 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   void _loadData() async {
     var mangaInfo = await _loadManga();
     var chapters = await mangaInfo.chapters;
-    setState(() {
-      _mangaInfo = mangaInfo;
-      _chapters = chapters;
-    });
+    if (mounted) {
+      setState(() {
+        _mangaInfo = mangaInfo;
+        _chapters = chapters;
+      });
+    }
   }
 
   @override

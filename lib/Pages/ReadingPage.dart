@@ -19,6 +19,7 @@ class _ReadingPageState extends State<ReadingPage> {
   List<MangaImageInfo> _images;
   String _nextChapterId;
   String _currentChapterId;
+  ScrollController _scrollController = ScrollController();
 
   Future<List<MangaImageInfo>> _loadChapter() async {
     List<MangaImageInfo> images = await DBProvider.dbManager.fetchWithPredicate(
@@ -48,6 +49,9 @@ class _ReadingPageState extends State<ReadingPage> {
   }
 
   void _loadData() async {
+    setState(() {
+      _images = null;
+    });
     var images = await _loadChapter();
     var nextChapterId = await _getNextChapterId();
     setState(() {
@@ -78,20 +82,26 @@ class _ReadingPageState extends State<ReadingPage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
-    var images = _imagesList();
-    if (images != null) {
+    if (_images != null) {
+      var images = _imagesList();
       widgets.addAll(images);
     }
-    widgets.add(RaisedButton(
-      child: Text("Next chapter"),
-      onPressed: () {
-        _currentChapterId = _nextChapterId;
-        _loadData();
-      },
-    ));
+    widgets.add(Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.0),
+        child: RaisedButton(
+          child: Text("Next chapter"),
+          onPressed: () {
+            _currentChapterId = _nextChapterId;
+            _scrollController.jumpTo(0.0);
+            _loadData();
+          },
+        )));
     return Scaffold(
         body: _images != null
-            ? ListView(children: widgets)
+            ? ListView(
+                children: widgets,
+                controller: _scrollController,
+              )
             : Center(child: CircularProgressIndicator()));
   }
 
@@ -100,7 +110,8 @@ class _ReadingPageState extends State<ReadingPage> {
         .map((imageInfo) => AspectRatio(
             aspectRatio: imageInfo.width / imageInfo.height,
             child: _pageImage(UrlFormatter().image(imageInfo.url).toString())))
-        .toList().cast<Widget>();
+        .toList()
+        .cast<Widget>();
   }
 
   Widget _pageImage(String imageUrl) {

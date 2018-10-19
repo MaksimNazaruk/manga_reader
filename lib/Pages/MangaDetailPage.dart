@@ -89,6 +89,14 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     setState(() {});
   }
 
+  void _navigateToChapter(String chapterId) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => ReadingPage(chapterId)))
+        .then((_) {
+      _loadData();
+    });
+  }
+
   List<Widget> _description(BuildContext context) {
     List<Widget> widgets = [
       Padding(
@@ -99,8 +107,8 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
           )),
       Padding(
           padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
-          child: Text("Author: ${_mangaInfo.author ?? "N\A"}")),
-      Text("Artist: ${_mangaInfo.artist ?? "N\A"}"),
+          child: Text(
+              "Author: ${_mangaInfo.author ?? "N\A"}\nArtist: ${_mangaInfo.artist ?? "N\A"}")),
       Padding(
           padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
           child: Text("Categories:\n${_mangaInfo.categories.join(", ")}")),
@@ -118,8 +126,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
         color: Theme.of(context).accentColor,
         child: Text("Continue reading"),
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(maintainState: false,
-              builder: (context) => ReadingPage(mostRecentlyReadChapter.id)));
+          _navigateToChapter(mostRecentlyReadChapter.id);
         },
       ));
     }
@@ -132,8 +139,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
               child: Text(
                   "Chapter ${chapter.number.toStringAsFixed(chapter.number.truncateToDouble() == chapter.number ? 0 : 2)}: ${chapter.title}"),
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(maintainState: false,
-                    builder: (context) => ReadingPage(chapter.id)));
+                _navigateToChapter(chapter.id);
               },
             ))
         .toList());

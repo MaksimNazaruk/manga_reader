@@ -63,15 +63,16 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8.0,
-                mainAxisSpacing: 8.0,
-                padding: EdgeInsets.all(8.0),
-                childAspectRatio: 3.5 / 5.0,
-                children: _cells(),
-              ),
-            ),
+                child: GridView.builder(
+              itemCount: _mangaList.length,
+              itemBuilder: (context, index) => _cell(index),
+              padding: EdgeInsets.all(8.0),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 3.5 / 5.0,
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0),
+            )),
           ],
         ));
   }
@@ -117,18 +118,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  List<Widget> _cells() {
-    return _mangaList.map((manga) {
-      return PosterCell(
-          title: manga.title,
-          posterUrl: manga.posterUrl != null
-              ? UrlFormatter().image(manga.posterUrl).toString()
-              : null,
-          isFavourite: manga.isFavourite,
-          onTap: (() {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => MangaDetailPage(manga.id)));
-          }));
-    }).toList();
+  Widget _cell(int index) {
+    var manga = _mangaList[index];
+    return PosterCell(
+        title: manga.title,
+        posterUrl: manga.posterUrl != null
+            ? UrlFormatter().image(manga.posterUrl).toString()
+            : null,
+        isFavourite: manga.isFavourite,
+        onTap: (() {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => MangaDetailPage(manga.id)));
+        }));
   }
 }

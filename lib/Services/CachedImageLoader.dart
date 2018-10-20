@@ -7,8 +7,21 @@ import 'package:path_provider/path_provider.dart';
 enum ImageStorage { documents, cache }
 
 class CachedImageLoader {
+  Future<Uint8List> loadImage({String fullImageUrl}) async {
+    // print("!@! loading $fullImageUrl");
+    var imageName = fullImageUrl.split("/").last;
+    var localUrl =
+        await _localImageUrl(imageName: imageName, storage: ImageStorage.cache);
+    var image = await _loadLocalImage(imageUrl: localUrl);
+    if (image == null) {
+      image = await _loadNetworkImage(imageUrl: fullImageUrl);
+      await _saveLocalImage(imageUrl: localUrl, imageData: image);
+    }
+    return image;
+  }
+
   Future<String> _localImageUrl(
-      {String shortImageUrl, ImageStorage storage}) async {
+      {String imageName, ImageStorage storage}) async {
     Directory directory;
     switch (storage) {
       case ImageStorage.cache:
@@ -18,12 +31,18 @@ class CachedImageLoader {
         directory = await getApplicationDocumentsDirectory();
         break;
     }
-    return directory.path + shortImageUrl;
+    return directory.path + imageName;
   }
 
   Future<Uint8List> _loadLocalImage({String imageUrl}) async {
-    var imageData = await File(imageUrl).readAsBytes();
-    return Uint8List.fromList(imageData);
+    var file = File(imageUrl);
+    var exists = await file.exists();
+    if (exists) {
+      var imageData = await file.readAsBytes();
+      return Uint8List.fromList(imageData);
+    } else {
+      return null;
+    }
   }
 
   Future<void> _saveLocalImage({String imageUrl, Uint8List imageData}) async {
@@ -31,7 +50,8 @@ class CachedImageLoader {
   }
 
   Future<Uint8List> _loadNetworkImage({String imageUrl}) async {
-    var request = await HttpClient().getUrl(Uri(path: imageUrl));
+    var uri = Uri.parse(imageUrl);
+    var request = await HttpClient().getUrl(uri);
     var response = await request.close();
     List<int> buffer = [];
     await for (var data in response) {

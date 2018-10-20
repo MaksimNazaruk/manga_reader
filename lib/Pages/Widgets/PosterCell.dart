@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:manga_reader/Pages/Widgets/LoadingImage.dart';
+import 'package:manga_reader/Services/CachedImageLoader.dart';
 
 class PosterCell extends StatelessWidget {
   final String title;
@@ -24,42 +25,40 @@ class PosterCell extends StatelessWidget {
                 color: Theme.of(context).disabledColor,
                 child: _posterImage(posterUrl)),
           ),
-          Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                    height: 25.0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: _statusIcons,
-                    )),
-                Expanded(child: Material(color: Colors.transparent)),
-                SizedBox(
-                    height: 50.0,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.0, 1.0),
-                          end: Alignment(0.0, -1.0),
-                          colors: <Color>[
-                            Theme.of(context).backgroundColor.withAlpha(245),
-                            Theme.of(context).backgroundColor.withAlpha(0)
-                          ],
-                        ),
-                      ),
-                    )),
-                Container(
-                    color: Theme.of(context).backgroundColor.withAlpha(245),
-                    child: Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text(
-                          title,
-                          maxLines: 2,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                        ))),
-              ]),
+          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Container(
+                height: 25.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: _statusIcons,
+                )),
+            Expanded(child: Material(color: Colors.transparent)),
+            SizedBox(
+                height: 50.0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment(0.0, 1.0),
+                      end: Alignment(0.0, -1.0),
+                      colors: <Color>[
+                        Theme.of(context).backgroundColor.withAlpha(245),
+                        Theme.of(context).backgroundColor.withAlpha(0)
+                      ],
+                    ),
+                  ),
+                )),
+            Container(
+                color: Theme.of(context).backgroundColor.withAlpha(245),
+                child: Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Text(
+                      title,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                    ))),
+          ]),
           Material(
             color: Colors.transparent,
             child: InkWell(
@@ -83,22 +82,10 @@ class PosterCell extends StatelessWidget {
 
   Widget _posterImage(String posterUrl) {
     return posterUrl != null
-        ? CachedNetworkImage(
-            fit: BoxFit.cover,
-            imageUrl: posterUrl,
-            placeholder: Center(child: CircularProgressIndicator()),
-            errorWidget: Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                  Icon(Icons.error, size: 32.0),
-                  SizedBox(height: 4.0),
-                  Text(
-                    "Couldn't load poster",
-                    textAlign: TextAlign.center,
-                  )
-                ])),
-          )
+        ? LoadingImage(
+            imageData: CachedImageLoader().loadImage(fullImageUrl: posterUrl),
+            loadingIndicator: Center(child: CircularProgressIndicator()),
+            fit: BoxFit.cover)
         : Center(
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -110,4 +97,34 @@ class PosterCell extends StatelessWidget {
             )
           ]));
   }
+
+  // Widget _posterImage(String posterUrl) {
+  //   return posterUrl != null
+  //       ? CachedNetworkImage(
+  //           fit: BoxFit.cover,
+  //           imageUrl: posterUrl,
+  //           placeholder: Center(child: CircularProgressIndicator()),
+  //           errorWidget: Center(
+  //               child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                 Icon(Icons.error, size: 32.0),
+  //                 SizedBox(height: 4.0),
+  //                 Text(
+  //                   "Couldn't load poster",
+  //                   textAlign: TextAlign.center,
+  //                 )
+  //               ])),
+  //         )
+  //       : Center(
+  //           child:
+  //               Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+  //           Icon(Icons.find_in_page, size: 32.0),
+  //           SizedBox(height: 4.0),
+  //           Text(
+  //             "No poster",
+  //             textAlign: TextAlign.center,
+  //           )
+  //         ]));
+  // }
 }

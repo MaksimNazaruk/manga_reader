@@ -1,10 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:manga_reader/Model/DBProvider.dart';
+import 'package:manga_reader/Services/CachedImageLoader.dart';
+import 'package:manga_reader/Pages/Widgets/LoadingImage.dart';
 
 class ReadingPage extends StatefulWidget {
   final String chapterId;
@@ -81,53 +83,43 @@ class _ReadingPageState extends State<ReadingPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> widgets = [];
-    if (_images != null) {
-      var images = _imagesList();
-      widgets.addAll(images);
-    }
-    widgets.add(Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10.0),
-        child: RaisedButton(
-          child: Text("Next chapter"),
-          onPressed: () {
-            _currentChapterId = _nextChapterId;
-            _scrollController.jumpTo(0.0);
-            _loadData();
-          },
-        )));
+    // List<Widget> widgets = [];
+    // widgets.add(Padding(
+    //     padding: EdgeInsets.symmetric(horizontal: 10.0),
+    //     child: RaisedButton(
+    //       child: Text("Next chapter"),
+    //       onPressed: () {
+    //         _currentChapterId = _nextChapterId;
+    //         _scrollController.jumpTo(0.0);
+    //         _loadData();
+    //       },
+    //     )));
     return Scaffold(
         body: _images != null
-            ? ListView(
-                children: widgets,
+            ? ListView.builder(
                 controller: _scrollController,
-              )
+                itemBuilder: (context, index) => _page(index),
+                itemCount: _images.length)
+            // ? ListView(
+            //     children: widgets,
+            //     controller: _scrollController,
+            //   )
             : Center(child: CircularProgressIndicator()));
   }
 
-  List<Widget> _imagesList() {
-    return _images
-        .map((imageInfo) => AspectRatio(
-            aspectRatio: imageInfo.width / imageInfo.height,
-            child: _pageImage(UrlFormatter().image(imageInfo.url).toString())))
-        .toList()
-        .cast<Widget>();
+  Widget _page(int index) {
+    var imageInfo = _images[index];
+    return AspectRatio(
+        aspectRatio: imageInfo.width / imageInfo.height,
+        child: _pageImage(UrlFormatter().image(imageInfo.url).toString()));
   }
 
   Widget _pageImage(String imageUrl) {
     return imageUrl != null
-        ? CachedNetworkImage(
+        ? LoadingImage(
             fit: BoxFit.cover,
-            imageUrl: imageUrl,
-            placeholder: Center(child: CircularProgressIndicator()),
-            errorWidget: Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                  Icon(Icons.error, size: 64.0),
-                  SizedBox(height: 4.0),
-                  Text("Couldn't load page T__T")
-                ])),
+            imageData: CachedImageLoader().loadImage(fullImageUrl: imageUrl),
+            loadingIndicator: Center(child: CircularProgressIndicator()),
           )
         : Center(
             child:

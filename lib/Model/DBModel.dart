@@ -29,7 +29,7 @@ class DBEntityField<T> {
       @required this.type,
       this.nullable = true,
       this.isPrimary = false,
-      this.defaultValue = null,
+      this.defaultValue,
       this.getValue,
       this.setValue});
 

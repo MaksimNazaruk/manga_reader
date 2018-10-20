@@ -25,7 +25,6 @@ class PosterCell extends StatelessWidget {
                 child: _posterImage(posterUrl)),
           ),
           Column(
-              // mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(

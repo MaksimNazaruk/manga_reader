@@ -85,28 +85,33 @@ class _ReadingPageState extends State<ReadingPage> {
 
   @override
   Widget build(BuildContext context) {
-    // List<Widget> widgets = [];
-    // widgets.add(Padding(
-    //     padding: EdgeInsets.symmetric(horizontal: 10.0),
-    //     child: RaisedButton(
-    //       child: Text("Next chapter"),
-    //       onPressed: () {
-    //         _currentChapterId = _nextChapterId;
-    //         _scrollController.jumpTo(0.0);
-    //         _loadData();
-    //       },
-    //     )));
     return Scaffold(
         body: _images != null
             ? ListView.builder(
                 controller: _scrollController,
-                itemBuilder: (context, index) => _page(index),
-                itemCount: _images.length)
+                itemBuilder: (context, index) => index < _images.length
+                    ? _page(index)
+                    : _nextChapterButton(),
+                itemCount:
+                    _images.length + 1) // +1 for the 'Next chapter' button
             // ? ListView(
             //     children: widgets,
             //     controller: _scrollController,
             //   )
             : Center(child: CircularProgressIndicator()));
+  }
+
+  Widget _nextChapterButton() {
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.0),
+        child: RaisedButton(
+          child: Text("Next chapter"),
+          onPressed: () {
+            _currentChapterId = _nextChapterId;
+            _scrollController.jumpTo(0.0);
+            _loadData();
+          },
+        ));
   }
 
   Widget _page(int index) {

@@ -10,23 +10,19 @@ class _LoadOperation {
   Completer<Uint8List> completer;
   final String url;
 
-  _LoadOperation(this.url){
+  _LoadOperation(this.url) {
     completer = Completer();
   }
 }
 
 class CachedImageLoader {
-
   static CachedImageLoader loader = CachedImageLoader();
 
   List<_LoadOperation> _queue = [];
-  // _LoadOperation _currentOperation;
   bool _processingQueue = false;
 
-  Future<Uint8List> loadImage(
-      {String fullImageUrl, bool prioritize = false}) {
-    _LoadOperation operation =
-        _LoadOperation(fullImageUrl);
+  Future<Uint8List> loadImage({String fullImageUrl, bool prioritize = true}) {
+    _LoadOperation operation = _LoadOperation(fullImageUrl);
     if (prioritize) {
       _queue.insert(0, operation);
     } else {
@@ -56,7 +52,9 @@ class CachedImageLoader {
     var image = await _loadLocalImage(imageUrl: localUrl);
     if (image == null) {
       image = await _loadNetworkImage(imageUrl: fullImageUrl);
-      await _saveLocalImage(imageUrl: localUrl, imageData: image);
+      if (image != null) {
+        await _saveLocalImage(imageUrl: localUrl, imageData: image);
+      }
     }
     return image;
   }
@@ -78,7 +76,6 @@ class CachedImageLoader {
   Future<Uint8List> _loadLocalImage({String imageUrl}) async {
     var file = File(imageUrl);
     var exists = await file.exists();
-    // file.lastModified() // TODO: use to clear cache
     if (exists) {
       var imageData = await file.readAsBytes();
       return Uint8List.fromList(imageData);
@@ -104,8 +101,23 @@ class CachedImageLoader {
   }
 
   Future<List<int>> uint8ListToIntListAsync(Uint8List uintList) {
-    return Future.microtask((){
+    return Future.microtask(() {
       return uintList.toList();
     });
+  }
+
+  static Future<void> clearOldCache(
+      {Duration age: const Duration(days: 1)}) async {
+    Directory cacheDir = await getTemporaryDirectory();
+    List<File> filesToDelete = [];
+    await for (var file in cacheDir.list(followLinks: false, recursive: true)) {
+      if (file is File) {
+        var lastModified = await file.lastModified();
+        if (lastModified.difference(DateTime.now()).compareTo(age) > 0) {
+          filesToDelete.add(file);
+        }
+      }
+    }
+    Future.wait(filesToDelete.map((file) => file.delete()));
   }
 }

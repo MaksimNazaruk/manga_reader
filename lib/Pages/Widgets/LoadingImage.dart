@@ -37,12 +37,13 @@ class _LoadingImageState extends State<LoadingImage> {
     return AnimatedCrossFade(
       firstChild:
           _loadedImageData != null ? Container() : widget.loadingIndicator,
-      secondChild: _loadedImageData == null
-          ? Container()
-          : Image.memory(
+      secondChild: (_loadedImageData?.length ?? 0) > 0
+          ? Center(
+              child: Image.memory(
               _loadedImageData,
               fit: widget.fit,
-            ),
+            ))
+          : Center(child: Text("No image data")),
       crossFadeState: _loadedImageData == null
           ? CrossFadeState.showFirst
           : CrossFadeState.showSecond,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:manga_reader/Model/DBProvider.dart';
 import 'package:manga_reader/Pages/HomePage.dart';
+import 'package:manga_reader/Services/CachedImageLoader.dart';
 
 void main() {
   initApp().then((_) {
@@ -11,6 +12,7 @@ void main() {
 
 Future<void> initApp() async {
   await DBProvider.dbManager.initDatabase();
+  await CachedImageLoader.clearOldCache();
 }
 
 class App extends StatelessWidget {

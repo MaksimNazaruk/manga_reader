@@ -7,49 +7,49 @@ import 'package:path_provider/path_provider.dart';
 enum ImageStorage { documents, cache }
 
 class _LoadOperation {
-  final Completer<Uint8List> completer;
+  Completer<Uint8List> completer;
   final String url;
 
-  _LoadOperation(this.completer, this.url);
+  _LoadOperation(this.url){
+    completer = Completer();
+  }
 }
 
 class CachedImageLoader {
+
+  static CachedImageLoader loader = CachedImageLoader();
+
   List<_LoadOperation> _queue = [];
   // _LoadOperation _currentOperation;
   bool _processingQueue = false;
 
   Future<Uint8List> loadImage(
-      {String fullImageUrl, bool prioritize = false}) async {
+      {String fullImageUrl, bool prioritize = false}) {
     _LoadOperation operation =
-        _LoadOperation(Completer<Uint8List>(), fullImageUrl);
+        _LoadOperation(fullImageUrl);
     if (prioritize) {
       _queue.insert(0, operation);
     } else {
       _queue.add(operation);
     }
     if (!_processingQueue) {
-      _processingQueue = true;
       _processQueue();
     }
     return operation.completer.future;
   }
 
   void _processQueue() async {
-    print("!@! start processing queue");
+    _processingQueue = true;
     while (_queue.isNotEmpty) {
       var operation = _queue.first;
-      print("!@! start processing operation ${operation.url}");
       var imageData = await _loadImage(fullImageUrl: operation.url);
-      print("!@! end processing operation ${operation.url}");
       operation.completer.complete(imageData);
-      _queue.removeAt(0);
+      _queue.remove(operation);
     }
     _processingQueue = false;
-    print("!@! end processing queue");
   }
 
   Future<Uint8List> _loadImage({String fullImageUrl}) async {
-    // print("!@! loading $fullImageUrl");
     var imageName = fullImageUrl.split("/").last;
     var localUrl =
         await _localImageUrl(imageName: imageName, storage: ImageStorage.cache);
@@ -78,7 +78,7 @@ class CachedImageLoader {
   Future<Uint8List> _loadLocalImage({String imageUrl}) async {
     var file = File(imageUrl);
     var exists = await file.exists();
-    // file.lastModified()
+    // file.lastModified() // TODO: use to clear cache
     if (exists) {
       var imageData = await file.readAsBytes();
       return Uint8List.fromList(imageData);
@@ -88,7 +88,8 @@ class CachedImageLoader {
   }
 
   Future<void> _saveLocalImage({String imageUrl, Uint8List imageData}) async {
-    await File(imageUrl).writeAsBytes(imageData.toList());
+    List<int> intImageData = await uint8ListToIntListAsync(imageData);
+    await File(imageUrl).writeAsBytes(intImageData);
   }
 
   Future<Uint8List> _loadNetworkImage({String imageUrl}) async {
@@ -100,5 +101,11 @@ class CachedImageLoader {
       buffer.addAll(data);
     }
     return Uint8List.fromList(buffer);
+  }
+
+  Future<List<int>> uint8ListToIntListAsync(Uint8List uintList) {
+    return Future.microtask((){
+      return uintList.toList();
+    });
   }
 }

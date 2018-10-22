@@ -56,11 +56,13 @@ class _ReadingPageState extends State<ReadingPage> {
     });
     var images = await _loadChapter();
     var nextChapterId = await _getNextChapterId();
-    setState(() {
-      _images = images;
-      _nextChapterId = nextChapterId;
-      _updateLastReadDate();
-    });
+    if (mounted) {
+      setState(() {
+        _images = images;
+        _nextChapterId = nextChapterId;
+        _updateLastReadDate();
+      });
+    }
   }
 
   void _updateLastReadDate() async {
@@ -118,7 +120,8 @@ class _ReadingPageState extends State<ReadingPage> {
     return imageUrl != null
         ? LoadingImage(
             fit: BoxFit.cover,
-            imageData: CachedImageLoader().loadImage(fullImageUrl: imageUrl),
+            imageData:
+                CachedImageLoader.loader.loadImage(fullImageUrl: imageUrl),
             loadingIndicator: Center(child: CircularProgressIndicator()),
           )
         : Center(

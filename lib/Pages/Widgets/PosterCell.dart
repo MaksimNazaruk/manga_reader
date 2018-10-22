@@ -83,7 +83,7 @@ class PosterCell extends StatelessWidget {
   Widget _posterImage(String posterUrl) {
     return posterUrl != null
         ? LoadingImage(
-            imageData: CachedImageLoader().loadImage(fullImageUrl: posterUrl),
+            imageData: CachedImageLoader.loader.loadImage(fullImageUrl: posterUrl),
             loadingIndicator: Center(child: CircularProgressIndicator()),
             fit: BoxFit.cover)
         : Center(

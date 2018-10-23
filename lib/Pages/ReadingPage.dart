@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:manga_reader/Services/BaseService.dart';
 import 'package:manga_reader/Services/UrlFormatter.dart';
 import 'package:manga_reader/Model/MangaModel.dart';
@@ -47,8 +48,15 @@ class _ReadingPageState extends State<ReadingPage> {
   void initState() {
     _currentChapterId = widget.chapterId;
     _loadData();
+    SystemChrome.setEnabledSystemUIOverlays([]);
     super.initState();
   }
+
+  @override
+    void dispose() {
+      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      super.dispose();
+    }
 
   void _loadData() async {
     setState(() {
@@ -80,45 +88,49 @@ class _ReadingPageState extends State<ReadingPage> {
         ChapterInfoDescription(),
         "mangaId = '${currentChapter.mangaId}' AND number > ${currentChapter.number}",
         ordering: "number ASC");
-    return nextChapters.first.id;
+    return nextChapters.first?.id;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: _images != null
-            ? ListView.builder(
-                controller: _scrollController,
-                itemBuilder: (context, index) => index < _images.length
-                    ? _page(index)
-                    : _nextChapterButton(),
-                itemCount:
-                    _images.length + 1) // +1 for the 'Next chapter' button
-            // ? ListView(
-            //     children: widgets,
-            //     controller: _scrollController,
-            //   )
-            : Center(child: CircularProgressIndicator()));
+      body: _images != null
+          ? ListView.builder(
+              controller: _scrollController,
+              itemBuilder: (context, index) =>
+                  index < _images.length ? _page(index) : _nextChapterButton(),
+              itemCount: _images.length + 1) // +1 for the 'Next chapter' button
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
+    );
   }
 
   Widget _nextChapterButton() {
     return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10.0),
-        child: RaisedButton(
-          child: Text("Next chapter"),
-          onPressed: () {
-            _currentChapterId = _nextChapterId;
-            _scrollController.jumpTo(0.0);
-            _loadData();
-          },
-        ));
+      padding: EdgeInsets.symmetric(horizontal: 10.0),
+      child: RaisedButton(
+        child: Text("Next chapter"),
+        onPressed: () {
+          _currentChapterId = _nextChapterId;
+          _scrollController.jumpTo(0.0);
+          _loadData();
+        },
+      ),
+    );
   }
 
   Widget _page(int index) {
     var imageInfo = _images[index];
-    return AspectRatio(
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 5.0),
+      child: AspectRatio(
         aspectRatio: imageInfo.width / imageInfo.height,
-        child: _pageImage(UrlFormatter().image(imageInfo.url).toString()));
+        child: _pageImage(
+          UrlFormatter().image(imageInfo.url).toString(),
+        ),
+      ),
+    );
   }
 
   Widget _pageImage(String imageUrl) {

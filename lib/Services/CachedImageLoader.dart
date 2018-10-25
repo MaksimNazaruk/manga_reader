@@ -16,33 +16,36 @@ class _LoadOperation {
 }
 
 class CachedImageLoader {
-  static CachedImageLoader loader = CachedImageLoader();
+  static CachedImageLoader loader = CachedImageLoader(simultaneousOperations: 3);
 
+  CachedImageLoader({this.simultaneousOperations = 1});
+
+  final int simultaneousOperations;
+  int _activeQueues = 0;
   List<_LoadOperation> _queue = [];
-  bool _processingQueue = false;
 
   Future<Uint8List> loadImage({String fullImageUrl, bool prioritize = true}) {
     _LoadOperation operation = _LoadOperation(fullImageUrl);
     if (prioritize) {
-      _queue.insert(0, operation);
-    } else {
-      _queue.add(operation);
-    }
-    if (!_processingQueue) {
+        _queue.insert(0, operation);
+      } else {
+        _queue.add(operation);
+      }
+    if (_activeQueues < simultaneousOperations) {
       _processQueue();
     }
     return operation.completer.future;
   }
 
   void _processQueue() async {
-    _processingQueue = true;
+    _activeQueues++;
     while (_queue.isNotEmpty) {
       var operation = _queue.first;
+      _queue.remove(operation);
       var imageData = await _loadImage(fullImageUrl: operation.url);
       operation.completer.complete(imageData);
-      _queue.remove(operation);
     }
-    _processingQueue = false;
+    _activeQueues--;
   }
 
   Future<Uint8List> _loadImage({String fullImageUrl}) async {
